@@ -13,6 +13,9 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.util.ArrayList;
+import java.util.Hashtable;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -40,6 +43,11 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        double x = 21.035;
+        double y = 52.249;
+        int diameter = 5000;
+        ArrayList<Hashtable<String, String>> list = new ArrayList<Hashtable<String, String>>();
+        new FetchAPI(this, R.string.api_swimming_pools, x, y, diameter, list).execute();
     }
 
     @Override
