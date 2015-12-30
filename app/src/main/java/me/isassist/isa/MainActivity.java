@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.list_row_name);
         setSupportActionBar(toolbar);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity
         double x = 21.035;
         double y = 52.249;
         int diameter = 5000;
-        ArrayList<Hashtable<String, String>> list = new ArrayList<Hashtable<String, String>>();
+        ArrayList<Hashtable<String, String>> list = new ArrayList<>();
         //new FetchAPI(this, R.string.api_swimming_pools, x, y, diameter, list).execute();
     }
     @Override
@@ -127,6 +127,9 @@ public class MainActivity extends AppCompatActivity
             {
                 Fragment fragment = new ListFragment();
                 Bundle args = new Bundle();
+                args.putDouble("LATITUDE", mLastLocation.getLatitude());
+                args.putDouble("LONGITUDE", mLastLocation.getLongitude());
+                fragment.setArguments(args);
 
                 FragmentManager fragmentManager = getFragmentManager();
                 fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();

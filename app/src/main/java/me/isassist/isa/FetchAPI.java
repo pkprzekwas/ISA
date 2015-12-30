@@ -34,6 +34,7 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
     private int mMaxFeatures;
     private int mAPITypeResourceID;
     private ArrayList<Hashtable<String, String>> mResult;
+    private ListFragment mFragment;
 
     /**
      *
@@ -44,7 +45,7 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
      * @param diameter the diameter of the circle of search
      * @param result ArrayList of Hashtable which will contain findings of the search in key - value pairs
      */
-    public FetchAPI(Context c, int APITypeResourceID, double x, double y, int diameter, ArrayList<Hashtable<String, String>> result)
+    public FetchAPI(Context c, int APITypeResourceID, double x, double y, int diameter, ArrayList<Hashtable<String, String>> result, ListFragment fragment)
     {
         mContext = c;
         mX = x;
@@ -53,6 +54,7 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
         mMaxFeatures = 0;
         mAPITypeResourceID = APITypeResourceID;
         mResult = result;
+        mFragment = fragment;
     }
 
     /**
@@ -184,7 +186,7 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
             reader = new BufferedReader(new InputStreamReader(inputStream));
 
             String line;
-            while ((line = reader.readLine()) != null) {}
+            while ((line = reader.readLine()) != null) {buffer.append(line);}
 
             if (buffer.length() == 0) {
                 // Stream was empty.  No point in parsing.
@@ -222,7 +224,7 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
     protected void onPostExecute(ArrayList<Hashtable<String, String>> result) {
         if (result != null)
         {
-            mResult = result;
+            mFragment.refresh(result);
         }
     }
 }

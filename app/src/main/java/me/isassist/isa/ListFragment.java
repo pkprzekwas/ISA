@@ -2,12 +2,18 @@ package me.isassist.isa;
 
 import android.app.Fragment;
 import android.content.Context;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
+import android.widget.ProgressBar;
+
+import java.util.ArrayList;
+import java.util.Hashtable;
 
 
 /**
@@ -15,56 +21,57 @@ import android.view.ViewGroup;
  * Activities that contain this fragment must implement the
  * {@link ListFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link ListFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
 public class ListFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private final String TAG = this.getClass().getSimpleName();
+
+    private final double MOCK_LOCATION_X = 21.035;
+    private final double MOCK_LOCATION_Y = 52.249;
+    private final int MOCK_LOCATION_DIAMETER = 2000;
+
+    private Location mLocation;
+
+    private ProgressBar mProgressBar;
+    private ListView mListView;
 
     private OnFragmentInteractionListener mListener;
 
-    public ListFragment() {
-        // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment ListFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static ListFragment newInstance(String param1, String param2) {
-        ListFragment fragment = new ListFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.i("CHUJ", "Fragment odpalony");
+        Log.i(TAG, "onCreate()");
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            mLocation = new Location("");
+            /**
+            mLocation.setLongitude(getArguments().getDouble("LONGITUDE"));
+            mLocation.setLatitude(getArguments().getDouble("LATITUDE"));
+             **/
+            mLocation.setLatitude(MOCK_LOCATION_Y);
+            mLocation.setLongitude(MOCK_LOCATION_X);
         }
+    }
+
+    public void refresh(ArrayList<Hashtable<String, String>> data)
+    {
+        Log.i(TAG, "refresh()");
+        mProgressBar = (ProgressBar) getView().findViewById(R.id.progressBar);
+        mListView = (ListView) getView().findViewById(R.id.listView);
+
+        mProgressBar.setVisibility(ProgressBar.INVISIBLE);
+        mListView.setAdapter(new ItemsListAdapter(getActivity(), mLocation, data));
+        mListView.setVisibility(ListView.VISIBLE);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        ArrayList<Hashtable<String, String>> list = new ArrayList<>();
+        new FetchAPI(getActivity(), R.string.api_hotels, MOCK_LOCATION_X, MOCK_LOCATION_Y, MOCK_LOCATION_DIAMETER, list, this).execute();
+
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_list, container, false);
     }
