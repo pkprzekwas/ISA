@@ -32,4 +32,5 @@
         android:layout_below="@+id/list_row_address"
         android:layout_alignLeft="@+id/list_row_address"
         android:layout_alignStart="@+id/list_row_address" />
+
 </RelativeLayout>

@@ -2,6 +2,7 @@ package me.isassist.isa;
 
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -9,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
@@ -32,6 +34,8 @@ public class ListFragment extends Fragment {
     private final int MOCK_LOCATION_DIAMETER = 2000;
 
     private Location mLocation;
+
+    private ArrayList<Hashtable<String, String>> mData;
 
     private ProgressBar mProgressBar;
     private ListView mListView;
@@ -59,17 +63,27 @@ public class ListFragment extends Fragment {
         Log.i(TAG, "refresh()");
         mProgressBar = (ProgressBar) getView().findViewById(R.id.progressBar);
         mListView = (ListView) getView().findViewById(R.id.listView);
-
+        mData = data;
         mProgressBar.setVisibility(ProgressBar.INVISIBLE);
         mListView.setAdapter(new ItemsListAdapter(getActivity(), mLocation, data));
         mListView.setVisibility(ListView.VISIBLE);
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(getActivity(), DetailActivity.class);
+                Hashtable<String, String> item = mData.get(position);
+                intent.putExtra("DATA", item);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        ArrayList<Hashtable<String, String>> list = new ArrayList<>();
+        ArrayList<Hashtable<String, String>> list = null;
+        //TODO: wyjebac ta liste w argumentach
         new FetchAPI(getActivity(), R.string.api_hotels, MOCK_LOCATION_X, MOCK_LOCATION_Y, MOCK_LOCATION_DIAMETER, list, this).execute();
 
         // Inflate the layout for this fragment
