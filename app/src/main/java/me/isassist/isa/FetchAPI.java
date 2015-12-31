@@ -217,6 +217,7 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
         {
             Log.e(TAG, ex.getMessage());
         }
+        mResult = returnList;
         return returnList;
     }
 
