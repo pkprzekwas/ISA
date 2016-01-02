@@ -13,7 +13,8 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 
 /**
- * Created by juzer on 30-Dec-15.
+ * Adapter for ListView in ListFragment.
+ * Handles showing a single row of list
  */
 public class ItemsListAdapter extends BaseAdapter {
 
@@ -69,13 +70,13 @@ public class ItemsListAdapter extends BaseAdapter {
         if (calculatedDistance < 1000.0)
         {
             calculatedDistance = Math.round(calculatedDistance);
-            distance.setText("Distance: " + calculatedDistance + " m");
+            distance.setText(String.format("Distance: %d m", (int)calculatedDistance));
         }
         else
         {
             calculatedDistance = calculatedDistance/1000f;
-            calculatedDistance = Math.round(calculatedDistance);
-            distance.setText("Distance: " + calculatedDistance + " km");
+            //calculatedDistance = Math.round(calculatedDistance);
+            distance.setText(String.format("Distance: %.1f km", calculatedDistance));
 
         }
         return vi;

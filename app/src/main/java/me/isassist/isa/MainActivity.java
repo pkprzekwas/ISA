@@ -20,9 +20,9 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-
+/**
+ * TODO: situation when location cannot be accessed or is outside warsaw
+ */
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         ListFragment.OnFragmentInteractionListener,
@@ -57,12 +57,6 @@ public class MainActivity extends AppCompatActivity
                     .addApi(LocationServices.API)
                     .build();
         }
-
-        double x = 21.035;
-        double y = 52.249;
-        int diameter = 5000;
-        ArrayList<Hashtable<String, String>> list = new ArrayList<>();
-        //new FetchAPI(this, R.string.api_swimming_pools, x, y, diameter, list).execute();
     }
     @Override
     protected void onStart()
@@ -142,11 +136,19 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+    /**
+     * Method needed by interface for interaction with fragment
+     * @param uri
+     */
     @Override
     public void onFragmentInteraction(Uri uri) {
 
     }
 
+    /**
+     * Handles getting last locations
+     * @param bundle
+     */
     @Override
     public void onConnected(Bundle bundle)
     {
@@ -171,6 +173,10 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    /**
+     * Handles getting last locations
+     * @param i
+     */
     @Override
     public void onConnectionSuspended(int i) {
         // The connection to Google Play services was lost for some reason. We call connect() to
@@ -179,6 +185,10 @@ public class MainActivity extends AppCompatActivity
         mGoogleApiClient.connect();
     }
 
+    /**
+     * Handles getting last locations
+     * @param connectionResult
+     */
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode());
