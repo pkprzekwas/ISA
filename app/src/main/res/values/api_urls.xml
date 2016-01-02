@@ -11,7 +11,6 @@
     <string name="api_police_offices">policeOffices</string>
     <string name="api_sport_fields">sportFields</string>
     <string name="api_swimming_pools">swimmingPools</string>
-    <string name="api_squares">squares</string> <!-- It doesn't use point as coordinates in answer!!! -->
     <string name="api_veturilo">veturilo</string>
     <string name="api_theatres">theatres</string>
 </resources>

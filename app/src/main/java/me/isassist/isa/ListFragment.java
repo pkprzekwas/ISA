@@ -58,6 +58,10 @@ public class ListFragment extends Fragment {
         }
     }
 
+    /**
+     * Method called from FetchAPI class to refresh the results
+     * @param data
+     */
     public void refresh(ArrayList<Hashtable<String, String>> data)
     {
         Log.i(TAG, "refresh()");

@@ -24,6 +24,9 @@ import javax.net.ssl.HttpsURLConnection;
 
 /**
  * Class that fetches JSON data from the API and parses it.
+ * TODO: better handling of exceptions
+ * TODO: situations when nothing was found in the given area
+ * TODO: situations with API error that needs retry
  */
 class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, String>>>
 {
@@ -221,10 +224,15 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
         return returnList;
     }
 
+    /**
+     * Calls a method in fragment, passes data fetched from API as argument
+     * @param result
+     */
     @Override
     protected void onPostExecute(ArrayList<Hashtable<String, String>> result) {
         if (result != null)
         {
+            // call a method in fragment, which will display results of the fetching on screen
             mFragment.refresh(result);
         }
     }
