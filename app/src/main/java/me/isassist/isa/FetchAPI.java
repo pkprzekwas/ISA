@@ -10,9 +10,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.URL;
@@ -32,53 +34,19 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
 {
     private final String TAG = this.getClass().getSimpleName();
     private Context mContext;
-    private double mX, mY;
-    private int mDiameter;
-    private int mMaxFeatures;
-    private int mAPITypeResourceID;
     private ArrayList<Hashtable<String, String>> mResult;
     private ListFragment mFragment;
+    private Bihapi mAPI;
 
     /**
      *
      * @param c context
-     * @param APITypeResourceID contains String resource with part of the URL containing chosen API
-     * @param x first geographic coordinate
-     * @param y second geographic coordinate
-     * @param diameter the diameter of the circle of search
-     * @param result ArrayList of Hashtable which will contain findings of the search in key - value pairs
      */
-    public FetchAPI(Context c, int APITypeResourceID, double x, double y, int diameter, ArrayList<Hashtable<String, String>> result, ListFragment fragment)
+    public FetchAPI(Context c, Bihapi API)
     {
+        //mFragment = fragment;
         mContext = c;
-        mX = x;
-        mY = y;
-        mDiameter = diameter;
-        mMaxFeatures = 0;
-        mAPITypeResourceID = APITypeResourceID;
-        mResult = result;
-        mFragment = fragment;
-    }
-
-    /**
-     *
-     * @param c context
-     * @param APITypeResourceID contains String resource with part of the URL containing chosen API
-     * @param x first geographic coordinate
-     * @param y second geographic coordinate
-     * @param diameter the diameter of the circle of search
-     * @param maxFeatures max number of returned findings
-     * @param result ArrayList of Hashtable which will contain findings of the search in key - value pairs
-     */
-    public FetchAPI(Context c, int APITypeResourceID, double x, double y, int diameter, int maxFeatures, ArrayList<Hashtable<String, String>> result)
-    {
-        mContext = c;
-        mX = x;
-        mY = y;
-        mDiameter = diameter;
-        mMaxFeatures = maxFeatures;
-        mAPITypeResourceID = APITypeResourceID;
-        mResult = result;
+        mAPI = API;
     }
 
     /**
@@ -140,6 +108,8 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
     @Override
     protected ArrayList<Hashtable<String, String>> doInBackground(String... params)
     {
+        Log.d(TAG, "Rozpoczynam pobieranie API " + mAPI.name());
+
         ArrayList<Hashtable<String, String>> returnList = null;
 
         // These two need to be declared outside the try/catch
@@ -156,12 +126,7 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
             }
         });
 
-        Uri.Builder uriBuilder = Uri.parse(mContext.getString(R.string.api_base_url)+mContext.getString(mAPITypeResourceID))
-                .buildUpon()
-                .appendQueryParameter("circle", mX + "," + mY + "," + mDiameter);
-
-        if (mMaxFeatures > 0)
-            uriBuilder.appendQueryParameter("maxFeatures", Integer.toString(mMaxFeatures));
+        Uri.Builder uriBuilder = Uri.parse(mAPI.getURL()).buildUpon();
 
         Uri uri = uriBuilder.build();
 
@@ -219,7 +184,21 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
         catch (Exception ex)
         {
             Log.e(TAG, ex.getMessage());
+            return null;
         }
+
+        Log.d(TAG, "Rozpoczynam zapisywanie do pliku " + mAPI.name());
+
+        try {
+            FileOutputStream fileOutputStream = mContext.openFileOutput(mAPI.name(), Context.MODE_PRIVATE);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(returnList);
+            objectOutputStream.close();
+            fileOutputStream.close();
+        } catch (IOException e) {
+            Log.e(TAG, e.getMessage());
+        }
+        Log.d(TAG, "Zapisano " + mAPI.name());
         mResult = returnList;
         return returnList;
     }
@@ -233,7 +212,7 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
         if (result != null)
         {
             // call a method in fragment, which will display results of the fetching on screen
-            mFragment.refresh(result);
+            //mFragment.refresh(result);
         }
     }
 }

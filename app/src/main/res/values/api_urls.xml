@@ -2,7 +2,6 @@
 <!-- List of addresses to location APIs that can be accessed using circle around coordinates -->
 <resources>
     <string name="api_base_url">https://api.bihapi.pl/wfs/warszawa/</string>
-
     <string name="api_city_offices">cityOffices</string>
     <string name="api_cash_machines">cashMachines</string>
     <string name="api_dormitories">dormitories</string>
