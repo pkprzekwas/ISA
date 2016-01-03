@@ -57,6 +57,12 @@ public class MainActivity extends AppCompatActivity
                     .addApi(LocationServices.API)
                     .build();
         }
+
+        for(Bihapi b: Bihapi.values()){
+            if(b == Bihapi.CASH_MACHINES) continue;
+            new FetchAPI(this, b).execute();
+        }
+
     }
     @Override
     protected void onStart()
@@ -110,26 +116,64 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
+        Fragment fragment = new ListFragment();
+        Bundle args = new Bundle();
+
+        args.putDouble("LATITUDE", mLastLocation.getLatitude());
+        args.putDouble("LONGITUDE", mLastLocation.getLongitude());
+
         switch (id)
         {
             case R.id.nav_atms:
+            {
+                args.putSerializable("API_TYPE", Bihapi.CASH_MACHINES);
+                break;
+            }
             case R.id.nav_bikes:
+            {
+                args.putSerializable("API_TYPE", Bihapi.VETURILO);
+                break;
+            }
             case R.id.nav_city_offices:
+            {
+                args.putSerializable("API_TYPE", Bihapi.CITY_OFFICES);
+                break;
+            }
             case R.id.nav_dormitories:
+            {
+                args.putSerializable("API_TYPE", Bihapi.DORMITORIES);
+                break;
+            }
             case R.id.nav_hotels:
+            {
+                args.putSerializable("API_TYPE", Bihapi.HOTELS);
+                break;
+            }
             case R.id.nav_pharmacies:
             {
-                Fragment fragment = new ListFragment();
-                Bundle args = new Bundle();
-                args.putDouble("LATITUDE", mLastLocation.getLatitude());
-                args.putDouble("LONGITUDE", mLastLocation.getLongitude());
-                fragment.setArguments(args);
-
-                FragmentManager fragmentManager = getFragmentManager();
-                fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
+                args.putSerializable("API_TYPE", Bihapi.PHARMACIES);
+                break;
+            }
+            case R.id.nav_sport_fields:
+            {
+                args.putSerializable("API_TYPE", Bihapi.SPORT_FIELDS);
+                break;
+            }
+            case R.id.nav_swimming:
+            {
+                args.putSerializable("API_TYPE", Bihapi.SWIMMING_POOLS);
+                break;
+            }
+            case R.id.nav_police_offices:
+            {
+                args.putSerializable("API_TYPE", Bihapi.POLICE_OFFICES);
                 break;
             }
         }
+        fragment.setArguments(args);
+
+        FragmentManager fragmentManager = getFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
