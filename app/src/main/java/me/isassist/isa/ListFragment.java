@@ -40,6 +40,8 @@ public class ListFragment extends Fragment {
     private ProgressBar mProgressBar;
     private ListView mListView;
 
+    private Bihapi mAPI;
+
     private OnFragmentInteractionListener mListener;
 
 
@@ -55,6 +57,7 @@ public class ListFragment extends Fragment {
              **/
             mLocation.setLatitude(MOCK_LOCATION_Y);
             mLocation.setLongitude(MOCK_LOCATION_X);
+            mAPI = (Bihapi) getArguments().getSerializable("API_TYPE");
         }
     }
 
@@ -68,6 +71,22 @@ public class ListFragment extends Fragment {
         mProgressBar = (ProgressBar) getView().findViewById(R.id.progressBar);
         mListView = (ListView) getView().findViewById(R.id.listView);
         mData = data;
+
+        /*
+        try {
+            FileInputStream fileInputStream = getActivity().openFileInput("hotels");
+            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+            mData = (ArrayList<Hashtable<String, String>>) objectInputStream.readObject();
+            objectInputStream.close();
+            fileInputStream.close();
+        } catch (IOException e) {
+            Log.e(TAG, e.getMessage());
+        }
+        catch (ClassNotFoundException e) {
+            Log.e(TAG, e.getMessage());
+        }
+        */
+
         mProgressBar.setVisibility(ProgressBar.INVISIBLE);
         mListView.setAdapter(new ItemsListAdapter(getActivity(), mLocation, data));
         mListView.setVisibility(ListView.VISIBLE);
@@ -88,7 +107,7 @@ public class ListFragment extends Fragment {
 
         ArrayList<Hashtable<String, String>> list = null;
         //TODO: wyjebac ta liste w argumentach
-        new FetchAPI(getActivity(), R.string.api_hotels, MOCK_LOCATION_X, MOCK_LOCATION_Y, MOCK_LOCATION_DIAMETER, list, this).execute();
+        //new FetchAPI(getActivity(), Bihapi.PHARMACIES, this).execute();
 
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_list, container, false);
