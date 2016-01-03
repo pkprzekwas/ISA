@@ -14,6 +14,9 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
@@ -104,13 +107,42 @@ public class ListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
+        View v = inflater.inflate(R.layout.fragment_list, container, false);
         ArrayList<Hashtable<String, String>> list = null;
         //TODO: wyjebac ta liste w argumentach
         //new FetchAPI(getActivity(), Bihapi.PHARMACIES, this).execute();
 
+        mProgressBar = (ProgressBar) v.findViewById(R.id.progressBar);
+        mListView = (ListView) v.findViewById(R.id.listView);
+
+        try {
+            FileInputStream fileInputStream = getActivity().openFileInput(mAPI.name());
+            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+            mData = (ArrayList<Hashtable<String, String>>) objectInputStream.readObject();
+            objectInputStream.close();
+            fileInputStream.close();
+        } catch (IOException e) {
+            Log.e(TAG, e.getMessage());
+        }
+        catch (ClassNotFoundException e) {
+            Log.e(TAG, e.getMessage());
+        }
+        //TODO: sortowanie po odleglosci obiektow od mLocation
+        mProgressBar.setVisibility(ProgressBar.INVISIBLE);
+        mListView.setAdapter(new ItemsListAdapter(getActivity(), mLocation, mData));
+        mListView.setVisibility(ListView.VISIBLE);
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(getActivity(), DetailActivity.class);
+                Hashtable<String, String> item = mData.get(position);
+                intent.putExtra("DATA", item);
+                startActivity(intent);
+            }
+        });
+
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_list, container, false);
+        return v;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
