@@ -20,6 +20,8 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
+import java.io.File;
+
 /**
  * TODO: situation when location cannot be accessed or is outside warsaw
  */
@@ -59,11 +61,17 @@ public class MainActivity extends AppCompatActivity
         }
 
         for(Bihapi b: Bihapi.values()){
-            if(b == Bihapi.CASH_MACHINES) continue;
-            new FetchAPI(this, b).execute();
+            if(!fileExists(b))
+                new FetchAPI(this, b).execute();
         }
 
     }
+
+    public boolean fileExists(Bihapi APIType){
+        File file = getBaseContext().getFileStreamPath(APIType.name());
+        return file.exists();
+    }
+
     @Override
     protected void onStart()
     {
