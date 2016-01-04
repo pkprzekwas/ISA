@@ -70,7 +70,8 @@ public class ItemsListAdapter extends BaseAdapter {
                 break;
             case VETURILO:
                 name.setText(item.get("LOKALIZACJA"));
-                address.setText("ID: " + item.get("OBJECTID"));
+                address.setText("Station ID: " + item.get("NR_STACJI"));
+                //address.setVisibility(TextView.INVISIBLE);
                 break;
             case HOTELS:
                 name.setText(item.get("OPIS")); //+ " " + item.get("GWIAZDKI"));
