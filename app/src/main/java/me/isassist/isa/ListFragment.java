@@ -72,7 +72,7 @@ public class ListFragment extends Fragment {
         mData = data;
 
         mProgressBar.setVisibility(ProgressBar.INVISIBLE);
-        mListView.setAdapter(new ItemsListAdapter(getActivity(), mLocation, data));
+        mListView.setAdapter(new ItemsListAdapter(getActivity(), mLocation, data, mAPI));
         mListView.setVisibility(ListView.VISIBLE);
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -82,6 +82,7 @@ public class ListFragment extends Fragment {
                 intent.putExtra("DATA", item);
                 intent.putExtra("LAT", mLocation.getLatitude());
                 intent.putExtra("LON", mLocation.getLongitude());
+                intent.putExtra("API_TYPE", mAPI);
                 startActivity(intent);
             }
         });

@@ -19,14 +19,12 @@ public class DetailActivity extends AppCompatActivity {
 
     private HashMap<String, String> mData;
     private Location mLocation;
-
+    private Bihapi mAPIType;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_detail);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
+        /**
         Button navigateButton = (Button) findViewById(R.id.navigateButton);
         navigateButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -38,9 +36,7 @@ public class DetailActivity extends AppCompatActivity {
                 mapIntent.setPackage("com.google.android.apps.maps");
                 startActivity(mapIntent);
             }
-        });
-
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        });**/
 
         Intent intent = this.getIntent();
         if (intent != null && intent.hasExtra("DATA")) {
@@ -48,8 +44,33 @@ public class DetailActivity extends AppCompatActivity {
             mLocation = new Location("");
             mLocation.setLongitude(intent.getDoubleExtra("LON", 0));
             mLocation.setLatitude(intent.getDoubleExtra("LAT", 0));
+            mAPIType = (Bihapi) intent.getSerializableExtra("API_TYPE");
         }
-
+        setContentView(R.layout.activity_detail);
+        switch (mAPIType) {
+            case CITY_OFFICES:
+                break;
+            case CASH_MACHINES:
+                break;
+            case DORMITORIES:
+                break;
+            case PHARMACIES:
+                break;
+            case HOTELS:
+                break;
+            case POLICE_OFFICES:
+                break;
+            case SPORT_FIELDS:
+                break;
+            case SWIMMING_POOLS:
+                break;
+            case VETURILO:
+                break;
+            case THEATRES:
+                break;
+        }
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
-
 }
