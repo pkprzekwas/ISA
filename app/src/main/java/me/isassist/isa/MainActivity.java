@@ -178,6 +178,11 @@ public class MainActivity extends AppCompatActivity
                 args.putSerializable("API_TYPE", Bihapi.POLICE_OFFICES);
                 break;
             }
+            case R.id.nav_theaters:
+            {
+                args.putSerializable("API_TYPE", Bihapi.THEATRES);
+                break;
+            }
         }
         fragment.setArguments(args);
 

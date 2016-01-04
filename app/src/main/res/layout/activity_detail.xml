@@ -33,12 +33,36 @@
         tools:context="me.isassist.isa.DetailActivity"
         tools:showIn="@layout/activity_detail">
 
-        <Button
+        <!--<Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Navigate"
             android:id="@+id/navigateButton"
             android:layout_centerVertical="true"
+            android:layout_centerHorizontal="true" />-->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Large Text"
+            android:id="@+id/objectName"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true" />
+
+        <TableLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/objectName"
+            android:layout_centerHorizontal="true"
+            android:id="@+id/tableLayout"></TableLayout>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Navigate"
+            android:id="@+id/navigateButton"
+            android:layout_below="@+id/tableLayout"
             android:layout_centerHorizontal="true" />
     </RelativeLayout>
 
