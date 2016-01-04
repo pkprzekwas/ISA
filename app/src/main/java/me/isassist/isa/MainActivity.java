@@ -65,6 +65,7 @@ public class MainActivity extends AppCompatActivity
                 new FetchAPI(this, b).execute();
         }
 
+        Log.i(TAG, "SCIEZKA: " + getFilesDir().getAbsolutePath());
     }
 
     public boolean fileExists(Bihapi APIType){

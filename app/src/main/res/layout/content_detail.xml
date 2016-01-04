@@ -12,4 +12,11 @@
     tools:context="me.isassist.isa.DetailActivity"
     tools:showIn="@layout/activity_detail">
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Navigate"
+        android:id="@+id/navigateButton"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true" />
 </RelativeLayout>

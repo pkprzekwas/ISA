@@ -80,6 +80,8 @@ public class ListFragment extends Fragment {
                 Intent intent = new Intent(getActivity(), DetailActivity.class);
                 Hashtable<String, String> item = mData.get(position);
                 intent.putExtra("DATA", item);
+                intent.putExtra("LAT", mLocation.getLatitude());
+                intent.putExtra("LON", mLocation.getLongitude());
                 startActivity(intent);
             }
         });
