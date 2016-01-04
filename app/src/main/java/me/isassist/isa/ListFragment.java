@@ -13,10 +13,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
@@ -34,7 +30,7 @@ public class ListFragment extends Fragment {
 
     private final double MOCK_LOCATION_X = 21.035;
     private final double MOCK_LOCATION_Y = 52.249;
-    private final int MOCK_LOCATION_DIAMETER = 2000;
+    //private final int MOCK_LOCATION_DIAMETER = 2000;
 
     private Location mLocation;
 
@@ -65,8 +61,8 @@ public class ListFragment extends Fragment {
     }
 
     /**
-     * Method called from FetchAPI class to refresh the results
-     * @param data
+     * Method called from DownloadFromFile class to refresh the results
+     * @param data API data sorted by distance from "current" location
      */
     public void refresh(ArrayList<Hashtable<String, String>> data)
     {
@@ -74,21 +70,6 @@ public class ListFragment extends Fragment {
         mProgressBar = (ProgressBar) getView().findViewById(R.id.progressBar);
         mListView = (ListView) getView().findViewById(R.id.listView);
         mData = data;
-
-        /*
-        try {
-            FileInputStream fileInputStream = getActivity().openFileInput("hotels");
-            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-            mData = (ArrayList<Hashtable<String, String>>) objectInputStream.readObject();
-            objectInputStream.close();
-            fileInputStream.close();
-        } catch (IOException e) {
-            Log.e(TAG, e.getMessage());
-        }
-        catch (ClassNotFoundException e) {
-            Log.e(TAG, e.getMessage());
-        }
-        */
 
         mProgressBar.setVisibility(ProgressBar.INVISIBLE);
         mListView.setAdapter(new ItemsListAdapter(getActivity(), mLocation, data));
@@ -107,39 +88,11 @@ public class ListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         View v = inflater.inflate(R.layout.fragment_list, container, false);
-        ArrayList<Hashtable<String, String>> list = null;
-        //TODO: wyjebac ta liste w argumentach
-        //new FetchAPI(getActivity(), Bihapi.PHARMACIES, this).execute();
 
-        mProgressBar = (ProgressBar) v.findViewById(R.id.progressBar);
-        mListView = (ListView) v.findViewById(R.id.listView);
-
-        try {
-            FileInputStream fileInputStream = getActivity().openFileInput(mAPI.name());
-            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-            mData = (ArrayList<Hashtable<String, String>>) objectInputStream.readObject();
-            objectInputStream.close();
-            fileInputStream.close();
-        } catch (IOException e) {
-            Log.e(TAG, e.getMessage());
-        }
-        catch (ClassNotFoundException e) {
-            Log.e(TAG, e.getMessage());
-        }
+        new DownloadFromFile(getActivity(), this, mLocation, mAPI.name()).execute();
         //TODO: sortowanie po odleglosci obiektow od mLocation
-        mProgressBar.setVisibility(ProgressBar.INVISIBLE);
-        mListView.setAdapter(new ItemsListAdapter(getActivity(), mLocation, mData));
-        mListView.setVisibility(ListView.VISIBLE);
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(getActivity(), DetailActivity.class);
-                Hashtable<String, String> item = mData.get(position);
-                intent.putExtra("DATA", item);
-                startActivity(intent);
-            }
-        });
 
         // Inflate the layout for this fragment
         return v;
