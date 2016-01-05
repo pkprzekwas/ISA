@@ -3,6 +3,7 @@ package me.isassist.isa;
 import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -74,11 +75,11 @@ public class ItemsListAdapter extends BaseAdapter {
                 //address.setVisibility(TextView.INVISIBLE);
                 break;
             case HOTELS:
-                name.setText(item.get("OPIS")); //+ " " + item.get("GWIAZDKI"));
+                name.setText(Html.fromHtml(item.get("OPIS")));
                 address.setText(item.get("ULICA") + " " + item.get("NUMER"));
                 break;
             default:
-                name.setText(item.get("OPIS"));
+                name.setText(Html.fromHtml(item.get("OPIS")));
                 address.setText(item.get("ULICA") + " " + item.get("NUMER"));
         }
 
