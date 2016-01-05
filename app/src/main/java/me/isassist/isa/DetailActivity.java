@@ -40,10 +40,15 @@ public class DetailActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String lat = mData.get("lat");
                 String lon = mData.get("lon");
+                /*
                 Uri gmmIntentUri = Uri.parse("google.navigation:q=" + lat + "," + lon + "&mode=w");
                 Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
                 mapIntent.setPackage("com.google.android.apps.maps");
-                startActivity(mapIntent);
+                startActivity(mapIntent);*/
+                String uri = "http://maps.google.com/maps?daddr="+lat+","+lon;
+                Intent intent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(uri));
+                intent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
+                startActivity(intent);
             }
         });
 
