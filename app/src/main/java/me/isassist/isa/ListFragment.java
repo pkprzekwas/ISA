@@ -13,7 +13,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-
 import java.util.ArrayList;
 import java.util.Hashtable;
 
@@ -31,7 +30,7 @@ public class ListFragment extends Fragment {
 
     private final double MOCK_LOCATION_X = 21.035;
     private final double MOCK_LOCATION_Y = 52.249;
-    private final int MOCK_LOCATION_DIAMETER = 2000;
+    //private final int MOCK_LOCATION_DIAMETER = 2000;
 
     private Location mLocation;
 
@@ -62,8 +61,8 @@ public class ListFragment extends Fragment {
     }
 
     /**
-     * Method called from FetchAPI class to refresh the results
-     * @param data
+     * Method called from DownloadFromFile class to refresh the results
+     * @param data API data sorted by distance from "current" location
      */
     public void refresh(ArrayList<Hashtable<String, String>> data)
     {
@@ -72,23 +71,8 @@ public class ListFragment extends Fragment {
         mListView = (ListView) getView().findViewById(R.id.listView);
         mData = data;
 
-        /*
-        try {
-            FileInputStream fileInputStream = getActivity().openFileInput("hotels");
-            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-            mData = (ArrayList<Hashtable<String, String>>) objectInputStream.readObject();
-            objectInputStream.close();
-            fileInputStream.close();
-        } catch (IOException e) {
-            Log.e(TAG, e.getMessage());
-        }
-        catch (ClassNotFoundException e) {
-            Log.e(TAG, e.getMessage());
-        }
-        */
-
         mProgressBar.setVisibility(ProgressBar.INVISIBLE);
-        mListView.setAdapter(new ItemsListAdapter(getActivity(), mLocation, data));
+        mListView.setAdapter(new ItemsListAdapter(getActivity(), mLocation, data, mAPI));
         mListView.setVisibility(ListView.VISIBLE);
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -96,6 +80,9 @@ public class ListFragment extends Fragment {
                 Intent intent = new Intent(getActivity(), DetailActivity.class);
                 Hashtable<String, String> item = mData.get(position);
                 intent.putExtra("DATA", item);
+                intent.putExtra("LAT", mLocation.getLatitude());
+                intent.putExtra("LON", mLocation.getLongitude());
+                intent.putExtra("API_TYPE", mAPI);
                 startActivity(intent);
             }
         });
@@ -105,12 +92,13 @@ public class ListFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        ArrayList<Hashtable<String, String>> list = null;
-        //TODO: wyjebac ta liste w argumentach
-        //new FetchAPI(getActivity(), Bihapi.PHARMACIES, this).execute();
+        View v = inflater.inflate(R.layout.fragment_list, container, false);
+
+        new DownloadFromFile(getActivity(), this, mLocation, mAPI.name()).execute();
+        //TODO: sortowanie po odleglosci obiektow od mLocation
 
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_list, container, false);
+        return v;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
