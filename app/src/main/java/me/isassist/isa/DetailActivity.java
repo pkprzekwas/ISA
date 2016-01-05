@@ -60,7 +60,7 @@ public class DetailActivity extends AppCompatActivity {
 
         switch (mAPIType) {
             case CITY_OFFICES:
-                description.setText(mData.get("OPIS"));
+                description.setText(Html.fromHtml(mData.get("OPIS")));
                 addRow(tableLayout, "Address:", mData.get("ULICA") + " " + mData.get("NUMER"), ValueType.TEXT);
                 addRow(tableLayout, "District:", mData.get("DZIELNICA"), ValueType.TEXT);
                 addRow(tableLayout, "Tel:", mData.get("TEL_FAX"), ValueType.TEXT);
@@ -76,13 +76,13 @@ public class DetailActivity extends AppCompatActivity {
                 addRow(tableLayout, "WWW:", mData.get("WWW_BANKU"), ValueType.WWW);
                 break;
             case DORMITORIES:
-                description.setText(mData.get("OPIS"));
+                description.setText(Html.fromHtml(mData.get("OPIS")));
                 addRow(tableLayout, "Address:", mData.get("ULICA") + " " + mData.get("NUMER"), ValueType.TEXT);
                 addRow(tableLayout, "District:", mData.get("DZIELNICA"), ValueType.TEXT);
                 addRow(tableLayout, "Tel:", mData.get("TEL_FAX"), ValueType.TEXT);
                 break;
             case PHARMACIES:
-                description.setText(mData.get("OPIS"));
+                description.setText(Html.fromHtml(mData.get("OPIS")));
                 addRow(tableLayout, "Address:", mData.get("ULICA") + " " + mData.get("NUMER"), ValueType.TEXT);
                 addRow(tableLayout, "District:", mData.get("DZIELNICA"), ValueType.TEXT);
                 addRow(tableLayout, "Opening hours:", mData.get("godziny_pracy"), ValueType.TEXT);
@@ -90,7 +90,7 @@ public class DetailActivity extends AppCompatActivity {
                 addRow(tableLayout, "Email: ", mData.get("MAIL"), ValueType.EMAIL);
                 break;
             case HOTELS:
-                description.setText(mData.get("OPIS"));
+                description.setText(Html.fromHtml(mData.get("OPIS")));
                 addRow(tableLayout, "Standard:", mData.get("GWIAZDKI"), ValueType.TEXT);
                 addRow(tableLayout, "Address:", mData.get("ULICA") + " " + mData.get("NUMER"), ValueType.TEXT);
                 addRow(tableLayout, "District:", mData.get("DZIELNICA"), ValueType.TEXT);
@@ -101,7 +101,7 @@ public class DetailActivity extends AppCompatActivity {
                 addRow(tableLayout, "Email: ", mData.get("MAIL"), ValueType.EMAIL);
                 break;
             case POLICE_OFFICES:
-                description.setText(mData.get("OPIS"));
+                description.setText(Html.fromHtml(mData.get("OPIS")));
                 addRow(tableLayout, "Address:", mData.get("ULICA") + " " + mData.get("NUMER"), ValueType.TEXT);
                 addRow(tableLayout, "District:", mData.get("DZIELNICA"), ValueType.TEXT);
                 addRow(tableLayout, "Tel:", mData.get("TEL_FAX"), ValueType.TEXT);
@@ -109,7 +109,7 @@ public class DetailActivity extends AppCompatActivity {
                 addRow(tableLayout, "Email: ", mData.get("MAIL"), ValueType.EMAIL);
                 break;
             case SPORT_FIELDS:
-                description.setText(mData.get("OPIS"));
+                description.setText(Html.fromHtml(mData.get("OPIS")));
                 addRow(tableLayout, "Address:", mData.get("ULICA"), ValueType.TEXT);
                 addRow(tableLayout, "District:", mData.get("DZIELNICA"), ValueType.TEXT);
                 addRow(tableLayout, "Tel:", mData.get("TEL_FAX"), ValueType.TEXT);
@@ -117,7 +117,7 @@ public class DetailActivity extends AppCompatActivity {
                 addRow(tableLayout, "Email: ", mData.get("MAIL1"), ValueType.EMAIL);
                 break;
             case SWIMMING_POOLS:
-                description.setText(mData.get("OPIS"));
+                description.setText(Html.fromHtml(mData.get("OPIS")));
                 addRow(tableLayout, "Address:", mData.get("ULICA") + " " + mData.get("NUMER"), ValueType.TEXT);
                 addRow(tableLayout, "District:", mData.get("DZIELNICA"), ValueType.TEXT);
                 addRow(tableLayout, "Tel:", mData.get("TEL_FAX"), ValueType.TEXT);
@@ -131,7 +131,7 @@ public class DetailActivity extends AppCompatActivity {
                 addRow(tableLayout, "Racks:", mData.get("STOJAKI"), ValueType.TEXT);
                 break;
             case THEATRES:
-                description.setText(mData.get("OPIS"));
+                description.setText(Html.fromHtml(mData.get("OPIS")));
                 addRow(tableLayout, "Address:", mData.get("ULICA") + " " + mData.get("NUMER"), ValueType.TEXT);
                 addRow(tableLayout, "District:", mData.get("DZIELNICA"), ValueType.TEXT);
                 addRow(tableLayout, "Tel:", mData.get("TEL_FAX"), ValueType.TEXT);
