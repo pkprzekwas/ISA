@@ -1,7 +1,13 @@
 package me.isassist.isa;
 
+import android.app.AlertDialog;
 import android.app.FragmentManager;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.location.Location;
+import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -14,6 +20,11 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -21,6 +32,8 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Hashtable;
 
 /**
  * TODO: situation when location cannot be accessed or is outside warsaw
@@ -35,12 +48,34 @@ public class MainActivity extends AppCompatActivity
     private final String TAG = this.getClass().getSimpleName();
     GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
+    private ProgressBar mProgressBar;
+    private Toolbar toolbar;
+
+
+    /**
+     * For now it only shows progress bar
+     * TODO secure and improve, disable navigation drawer while fetching data
+     * @param mAPI
+     */
+    public void refresh(Bihapi mAPI)
+    {
+        TextView initText = (TextView) findViewById(R.id.init);
+        initText.setText("Running aplication for the first time may take a while.\n" +
+                "Please stay patient.\n\n" + mAPI.name() + " obtained");
+        if(mAPI.name() == "THEATRES") {
+            Log.i(TAG, "refresh()");
+            initText.setVisibility(View.GONE);
+            mProgressBar = (ProgressBar) this.findViewById(R.id.progressBar);
+            mProgressBar.setVisibility(ProgressBar.INVISIBLE);
+        }
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState){
+    protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.list_row_name);
+        toolbar = (Toolbar) findViewById(R.id.list_row_name);
         setSupportActionBar(toolbar);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -52,6 +87,13 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        // checking interet access
+        if(isNetworkAvailable())
+            Toast.makeText(this, "Internet access", Toast.LENGTH_LONG).show();
+        else
+            Toast.makeText(this, "No Internet access", Toast.LENGTH_LONG).show();
+
+
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
                     .addConnectionCallbacks(this)
@@ -60,12 +102,50 @@ public class MainActivity extends AppCompatActivity
                     .build();
         }
 
+        // nie ruszać - nie wiem czemu ale sprawia probemy
+        final LocationManager manager = (LocationManager) getSystemService( this.LOCATION_SERVICE );
+
+        // checking internet connection
+        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+            buildAlertMessageNoGps();
+        }
+
         for(Bihapi b: Bihapi.values()){
             if(!fileExists(b))
-                new FetchAPI(this, b).execute();
+                new FetchAPI(this,this, b).execute();
+            else
+                refresh(Bihapi.THEATRES);
         }
 
         Log.i(TAG, "SCIEZKA: " + getFilesDir().getAbsolutePath());
+    }
+
+    /**
+     * In case of lack of GPS connecction method sends a prompt to turn it on.
+     */
+    private void buildAlertMessageNoGps() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Your GPS seems to be disabled, do you want to enable it?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
+                    }
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(this.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
     public boolean fileExists(Bihapi APIType){
@@ -250,6 +330,5 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode());
-
     }
 }
