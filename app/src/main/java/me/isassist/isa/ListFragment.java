@@ -50,12 +50,17 @@ public class ListFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mInstruction = (ImageView) getActivity().findViewById(R.id.instruction);
-        mInstruction.setVisibility(View.INVISIBLE);
-
         Log.i(TAG, "onCreate()");
-        if (getArguments() != null) {
+        if (savedInstanceState != null) {
+            mLocation = savedInstanceState.getParcelable("LOCATION");
+            mAPI = (Bihapi) savedInstanceState.getSerializable("API");
+        }
 
+        mInstruction = (ImageView) getActivity().findViewById(R.id.instruction);
+        if (mInstruction != null)
+            mInstruction.setVisibility(View.INVISIBLE);
+
+        if (getArguments() != null) {
             MainActivity activity = (MainActivity) getActivity();
             mLocation = activity.mLastLocation;
             mAPI = (Bihapi) getArguments().getSerializable("API_TYPE");
@@ -63,32 +68,43 @@ public class ListFragment extends Fragment {
         getActivity().setTitle(mAPI.toString());
     }
 
-    /**
-     * Method called from DownloadFromFile class to refresh the results
-     * @param data API data sorted by distance from "current" location
-     */
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putParcelable("LOCATION", mLocation);
+        savedInstanceState.putSerializable("API", mAPI);
+    }
+        /**
+         * Method called from DownloadFromFile class to refresh the results
+         * @param data API data sorted by distance from "current" location
+         */
     public void refresh(ArrayList<Hashtable<String, String>> data)
     {
         Log.i(TAG, "refresh()");
-        mProgressBar = (ProgressBar) getView().findViewById(R.id.progressBar);
-        mListView = (ListView) getView().findViewById(R.id.listView);
+        try {
+            mProgressBar = (ProgressBar) getView().findViewById(R.id.progressBar);
+            mListView = (ListView) getView().findViewById(R.id.listView);
+        }
+        catch (NullPointerException ex)
+        {
+            return;
+        }
         mData = data;
 
         mProgressBar.setVisibility(ProgressBar.INVISIBLE);
-        mListView.setAdapter(new ItemsListAdapter(getActivity(), mLocation, data, mAPI));
-        mListView.setVisibility(ListView.VISIBLE);
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(getActivity(), DetailActivity.class);
-                Hashtable<String, String> item = mData.get(position);
-                intent.putExtra("DATA", item);
-                intent.putExtra("LAT", mLocation.getLatitude());
-                intent.putExtra("LON", mLocation.getLongitude());
-                intent.putExtra("API_TYPE", mAPI);
-                startActivity(intent);
-            }
-        });
+            mListView.setAdapter(new ItemsListAdapter(getActivity(), mLocation, data, mAPI));
+            mListView.setVisibility(ListView.VISIBLE);
+            mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    Intent intent = new Intent(getActivity(), DetailActivity.class);
+                    Hashtable<String, String> item = mData.get(position);
+                    intent.putExtra("DATA", item);
+                    intent.putExtra("LAT", mLocation.getLatitude());
+                    intent.putExtra("LON", mLocation.getLongitude());
+                    intent.putExtra("API_TYPE", mAPI);
+                    startActivity(intent);
+                }
+            });
     }
 
     @Override
