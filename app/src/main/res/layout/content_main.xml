@@ -14,8 +14,8 @@
 
     <ProgressBar
         style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="220dp"
+        android:layout_height="220dp"
         android:id="@+id/progressBar"
         android:layout_gravity="center"
         android:indeterminate="true" />
@@ -24,24 +24,25 @@
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="right|top">
+        android:layout_gravity="center_horizontal|top">
 
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Initialization"
+            android:text="@string/init"
             android:id="@+id/init"
             android:layout_gravity="center_horizontal|top" />
 
         <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="321dp"
+            android:layout_height="match_parent"
             android:id="@+id/instruction"
             android:visibility="invisible"
-            android:src="@drawable/swipeinstruction"
-            android:layout_gravity="center" />
+            android:contentDescription="@string/desc"
+            android:src="@drawable/startscreen"
+            android:layout_gravity="center_horizontal|top" />
 
     </FrameLayout>
 </FrameLayout>
