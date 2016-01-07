@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity
 
     private final String TAG = this.getClass().getSimpleName();
     GoogleApiClient mGoogleApiClient;
-    Location mLastLocation;
+    public Location mLastLocation;
     private ProgressBar mProgressBar;
     private Toolbar toolbar;
     private ImageView mInstruction;
@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity
     {
         TextView initText = (TextView) findViewById(R.id.init);
         initText.setText("Running aplication for the first time may take a while.\n" +
-                "Please stay patient.\n\n" + mAPI.name() + " obtained");
+                "Please stay patient.");
         if(mAPI.name() == "THEATRES") {
             Log.i(TAG, "refresh()");
             initText.setVisibility(View.GONE);
@@ -112,12 +112,13 @@ public class MainActivity extends AppCompatActivity
         }
 
         for(Bihapi b: Bihapi.values()){
-            if(!fileExists(b))
-
-                new FetchAPI(this,this, b).execute();
-            else
+            if(!fileExists(b)) {
+                new FetchAPI(this, this, b, FetchAPI.FetchType.FILE_RESOURCES).execute();
+            }
+            else {
                 mInstruction.setVisibility(View.VISIBLE);
                 refresh(Bihapi.THEATRES);
+            }
         }
 
         Log.i(TAG, "SCIEZKA: " + getFilesDir().getAbsolutePath());
@@ -125,7 +126,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     /**
-     * In case of lack of GPS connecction method sends a prompt to turn it on.
+     * In case of lack of GPS conecction method sends a prompt to turn it on.
      */
     private void buildAlertMessageNoGps() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -218,8 +219,6 @@ public class MainActivity extends AppCompatActivity
             return false;
         }
 
-        args.putDouble("LATITUDE", mLastLocation.getLatitude());
-        args.putDouble("LONGITUDE", mLastLocation.getLongitude());
 
         switch (id)
         {

@@ -26,14 +26,12 @@ import java.util.Hashtable;
 public class DetailActivity extends AppCompatActivity {
 
     private HashMap<String, String> mData;
-    private Location mLocation;
     private Bihapi mAPIType;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_detail);
-
         Button navigateButton = (Button) findViewById(R.id.navigateButton);
         navigateButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -55,11 +53,10 @@ public class DetailActivity extends AppCompatActivity {
         Intent intent = this.getIntent();
         if (intent != null && intent.hasExtra("DATA")) {
             mData = (HashMap<String, String>) intent.getSerializableExtra("DATA");
-            mLocation = new Location("");
-            mLocation.setLongitude(intent.getDoubleExtra("LON", 0));
-            mLocation.setLatitude(intent.getDoubleExtra("LAT", 0));
             mAPIType = (Bihapi) intent.getSerializableExtra("API_TYPE");
         }
+
+        setTitle(mAPIType.toString());
         TableLayout tableLayout = (TableLayout) findViewById(R.id.tableLayout);
         TextView description = (TextView) findViewById(R.id.objectName);
 
