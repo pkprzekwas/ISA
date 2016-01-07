@@ -55,15 +55,12 @@ public class ListFragment extends Fragment {
 
         Log.i(TAG, "onCreate()");
         if (getArguments() != null) {
-            mLocation = new Location("");
-            /**
-            mLocation.setLongitude(getArguments().getDouble("LONGITUDE"));
-            mLocation.setLatitude(getArguments().getDouble("LATITUDE"));
-             **/
-            mLocation.setLatitude(MOCK_LOCATION_Y);
-            mLocation.setLongitude(MOCK_LOCATION_X);
+
+            MainActivity activity = (MainActivity) getActivity();
+            mLocation = activity.mLastLocation;
             mAPI = (Bihapi) getArguments().getSerializable("API_TYPE");
         }
+        getActivity().setTitle(mAPI.toString());
     }
 
     /**
@@ -100,7 +97,8 @@ public class ListFragment extends Fragment {
 
         View v = inflater.inflate(R.layout.fragment_list, container, false);
 
-        new DownloadFromFile(getActivity(), this, mLocation, mAPI.name()).execute();
+        if (mLocation != null)
+            new DownloadFromFile(getActivity(), this, mLocation, mAPI.name()).execute();
         //TODO: sortowanie po odleglosci obiektow od mLocation
 
         // Inflate the layout for this fragment
