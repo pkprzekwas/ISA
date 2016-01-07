@@ -21,29 +21,25 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Hashtable;
 
-/**
- * TODO: situation when location cannot be accessed or is outside warsaw
- */
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         ListFragment.OnFragmentInteractionListener,
         GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener
+        GoogleApiClient.OnConnectionFailedListener,
+        LocationListener
 {
 
     private final String TAG = this.getClass().getSimpleName();
@@ -52,11 +48,11 @@ public class MainActivity extends AppCompatActivity
     private ProgressBar mProgressBar;
     private Toolbar toolbar;
     private ImageView mInstruction;
+    protected LocationRequest mLocationRequest;
 
 
     /**
      * For now it only shows progress bar
-     * TODO secure and improve, disable navigation drawer while fetching data
      * @param mAPI
      */
     public void refresh(Bihapi mAPI)
@@ -92,11 +88,11 @@ public class MainActivity extends AppCompatActivity
 
         mInstruction = (ImageView)findViewById(R.id.instruction);
 
-        // checking interet access
+        // checking internet access
         if(isNetworkAvailable())
-            Toast.makeText(this, "Internet access", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Internet access", Toast.LENGTH_SHORT).show();
         else
-            Toast.makeText(this, "No Internet access", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "No Internet access", Toast.LENGTH_SHORT).show();
 
 
         if (mGoogleApiClient == null) {
@@ -125,6 +121,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         Log.i(TAG, "SCIEZKA: " + getFilesDir().getAbsolutePath());
+        mLocationRequest = createLocationRequest();
     }
 
     /**
@@ -215,6 +212,12 @@ public class MainActivity extends AppCompatActivity
         Fragment fragment = new ListFragment();
         Bundle args = new Bundle();
 
+        if (mLastLocation == null)
+        {
+            Toast.makeText(this, "Waiting for the location...", Toast.LENGTH_LONG).show();
+            return false;
+        }
+
         args.putDouble("LATITUDE", mLastLocation.getLatitude());
         args.putDouble("LONGITUDE", mLastLocation.getLongitude());
 
@@ -303,6 +306,8 @@ public class MainActivity extends AppCompatActivity
         // in rare cases when a location is not available.
         try {
             mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            LocationServices.FusedLocationApi.requestLocationUpdates(
+                    mGoogleApiClient, mLocationRequest, this);
         }
         catch (SecurityException ex)
         {
@@ -312,9 +317,9 @@ public class MainActivity extends AppCompatActivity
             String loc = new String();
             loc += "lat:  " + mLastLocation.getLatitude();
             loc += ", lon: " + mLastLocation.getLongitude();
-            Toast.makeText(this, loc, Toast.LENGTH_LONG).show();
+            Toast.makeText(this, loc, Toast.LENGTH_SHORT).show();
         } else {
-            Toast.makeText(this, "No location detected!!!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "No location detected!!!", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -337,5 +342,20 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode());
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        mLastLocation = location;
+        Toast.makeText(this, "Location updated!", Toast.LENGTH_SHORT).show();
+        LocationServices.FusedLocationApi.removeLocationUpdates(
+                mGoogleApiClient, this);
+    }
+    protected LocationRequest createLocationRequest() {
+        LocationRequest locationRequest = new LocationRequest();
+        locationRequest.setInterval(200);
+        locationRequest.setFastestInterval(200);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        return locationRequest;
     }
 }
