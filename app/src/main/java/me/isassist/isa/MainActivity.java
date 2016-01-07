@@ -22,6 +22,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -50,6 +51,7 @@ public class MainActivity extends AppCompatActivity
     Location mLastLocation;
     private ProgressBar mProgressBar;
     private Toolbar toolbar;
+    private ImageView mInstruction;
 
 
     /**
@@ -67,6 +69,7 @@ public class MainActivity extends AppCompatActivity
             initText.setVisibility(View.GONE);
             mProgressBar = (ProgressBar) this.findViewById(R.id.progressBar);
             mProgressBar.setVisibility(ProgressBar.INVISIBLE);
+            mInstruction.setVisibility(View.VISIBLE);
         }
     }
 
@@ -87,6 +90,8 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        mInstruction = (ImageView)findViewById(R.id.instruction);
+
         // checking interet access
         if(isNetworkAvailable())
             Toast.makeText(this, "Internet access", Toast.LENGTH_LONG).show();
@@ -102,7 +107,7 @@ public class MainActivity extends AppCompatActivity
                     .build();
         }
 
-        // nie ruszać - nie wiem czemu ale sprawia probemy
+        // nie ruszać - nie wiem czemu ale sprawia problemy
         final LocationManager manager = (LocationManager) getSystemService( this.LOCATION_SERVICE );
 
         // checking internet connection
@@ -112,8 +117,10 @@ public class MainActivity extends AppCompatActivity
 
         for(Bihapi b: Bihapi.values()){
             if(!fileExists(b))
+
                 new FetchAPI(this,this, b).execute();
             else
+                mInstruction.setVisibility(View.VISIBLE);
                 refresh(Bihapi.THEATRES);
         }
 
