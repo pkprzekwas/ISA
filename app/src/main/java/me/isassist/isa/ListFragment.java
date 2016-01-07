@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import java.util.ArrayList;
@@ -40,6 +41,8 @@ public class ListFragment extends Fragment {
     private ListView mListView;
 
     private Bihapi mAPI;
+    private ImageView mInstruction;
+
 
     private OnFragmentInteractionListener mListener;
 
@@ -47,6 +50,9 @@ public class ListFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mInstruction = (ImageView) getActivity().findViewById(R.id.instruction);
+        mInstruction.setVisibility(View.INVISIBLE);
+
         Log.i(TAG, "onCreate()");
         if (getArguments() != null) {
             mLocation = new Location("");

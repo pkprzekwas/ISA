@@ -37,14 +37,16 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
     private ArrayList<Hashtable<String, String>> mResult;
     private ListFragment mFragment;
     private Bihapi mAPI;
+    MainActivity mActivity;
 
     /**
      *
      * @param c context
      */
-    public FetchAPI(Context c, Bihapi API)
+    public FetchAPI(Context c, MainActivity m, Bihapi API)
     {
         //mFragment = fragment;
+        mActivity = m;
         mContext = c;
         mAPI = API;
     }
@@ -209,10 +211,8 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
      */
     @Override
     protected void onPostExecute(ArrayList<Hashtable<String, String>> result) {
-        if (result != null)
-        {
-            // call a method in fragment, which will display results of the fetching on screen
-            //mFragment.refresh(result);
+        if (result != null) {
+                mActivity.refresh(mAPI);
         }
     }
 }
