@@ -6,6 +6,9 @@
 
     <string name="action_settings">Settings</string>
 
+    <string name="desc">Instruction image</string>
+    <string name="init">Initialization</string>
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_detail">DetailActivity</string>
