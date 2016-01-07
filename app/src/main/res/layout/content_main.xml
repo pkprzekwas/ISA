@@ -40,7 +40,7 @@
             android:id="@+id/instruction"
             android:visibility="invisible"
             android:contentDescription="@string/desc"
-            android:src="@drawable/startscreen"
+            android:src="@drawable/startscr"
             android:layout_gravity="center_horizontal|top" />
 
     </FrameLayout>
