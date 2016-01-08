@@ -50,48 +50,61 @@ public class ListFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mInstruction = (ImageView) getActivity().findViewById(R.id.instruction);
-        mInstruction.setVisibility(View.INVISIBLE);
-
         Log.i(TAG, "onCreate()");
+        if (savedInstanceState != null) {
+            mLocation = savedInstanceState.getParcelable("LOCATION");
+            mAPI = (Bihapi) savedInstanceState.getSerializable("API");
+        }
+
+        mInstruction = (ImageView) getActivity().findViewById(R.id.instruction);
+        if (mInstruction != null)
+            mInstruction.setVisibility(View.INVISIBLE);
+
         if (getArguments() != null) {
-            mLocation = new Location("");
-            /**
-            mLocation.setLongitude(getArguments().getDouble("LONGITUDE"));
-            mLocation.setLatitude(getArguments().getDouble("LATITUDE"));
-             **/
-            mLocation.setLatitude(MOCK_LOCATION_Y);
-            mLocation.setLongitude(MOCK_LOCATION_X);
+            MainActivity activity = (MainActivity) getActivity();
+            mLocation = activity.mLastLocation;
             mAPI = (Bihapi) getArguments().getSerializable("API_TYPE");
         }
+        getActivity().setTitle(mAPI.toString());
     }
 
-    /**
-     * Method called from DownloadFromFile class to refresh the results
-     * @param data API data sorted by distance from "current" location
-     */
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putParcelable("LOCATION", mLocation);
+        savedInstanceState.putSerializable("API", mAPI);
+    }
+        /**
+         * Method called from DownloadFromFile class to refresh the results
+         * @param data API data sorted by distance from "current" location
+         */
     public void refresh(ArrayList<Hashtable<String, String>> data)
     {
         Log.i(TAG, "refresh()");
-        mProgressBar = (ProgressBar) getView().findViewById(R.id.progressBar);
-        mListView = (ListView) getView().findViewById(R.id.listView);
+        try {
+            mProgressBar = (ProgressBar) getView().findViewById(R.id.progressBar);
+            mListView = (ListView) getView().findViewById(R.id.listView);
+        }
+        catch (NullPointerException ex)
+        {
+            return;
+        }
         mData = data;
 
         mProgressBar.setVisibility(ProgressBar.INVISIBLE);
-        mListView.setAdapter(new ItemsListAdapter(getActivity(), mLocation, data, mAPI));
-        mListView.setVisibility(ListView.VISIBLE);
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(getActivity(), DetailActivity.class);
-                Hashtable<String, String> item = mData.get(position);
-                intent.putExtra("DATA", item);
-                intent.putExtra("LAT", mLocation.getLatitude());
-                intent.putExtra("LON", mLocation.getLongitude());
-                intent.putExtra("API_TYPE", mAPI);
-                startActivity(intent);
-            }
-        });
+            mListView.setAdapter(new ItemsListAdapter(getActivity(), mLocation, data, mAPI));
+            mListView.setVisibility(ListView.VISIBLE);
+            mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    Intent intent = new Intent(getActivity(), DetailActivity.class);
+                    Hashtable<String, String> item = mData.get(position);
+                    intent.putExtra("DATA", item);
+                    intent.putExtra("LAT", mLocation.getLatitude());
+                    intent.putExtra("LON", mLocation.getLongitude());
+                    intent.putExtra("API_TYPE", mAPI);
+                    startActivity(intent);
+                }
+            });
     }
 
     @Override
@@ -100,7 +113,8 @@ public class ListFragment extends Fragment {
 
         View v = inflater.inflate(R.layout.fragment_list, container, false);
 
-        new DownloadFromFile(getActivity(), this, mLocation, mAPI.name()).execute();
+        if (mLocation != null)
+            new DownloadFromFile(getActivity(), this, mLocation, mAPI.name()).execute();
         //TODO: sortowanie po odleglosci obiektow od mLocation
 
         // Inflate the layout for this fragment

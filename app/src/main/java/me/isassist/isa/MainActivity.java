@@ -41,14 +41,17 @@ public class MainActivity extends AppCompatActivity
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener
 {
-
     private final String TAG = this.getClass().getSimpleName();
     GoogleApiClient mGoogleApiClient;
-    Location mLastLocation;
-    private ProgressBar mProgressBar;
-    private Toolbar toolbar;
+    public Location mLastLocation;
     private ImageView mInstruction;
     protected LocationRequest mLocationRequest;
+    /**
+     * When this variable is not null it means a fragment with a certain list is open
+     * This variable is used to restore this fragment after restart of activity
+     * (for example screen rotation)
+     */
+    private Bihapi mListType = null;
 
 
     /**
@@ -59,11 +62,11 @@ public class MainActivity extends AppCompatActivity
     {
         TextView initText = (TextView) findViewById(R.id.init);
         initText.setText("Running aplication for the first time may take a while.\n" +
-                "Please stay patient.\n\n" + mAPI.name() + " obtained");
+                "Please stay patient.");
         if(mAPI.name() == "THEATRES") {
             Log.i(TAG, "refresh()");
             initText.setVisibility(View.GONE);
-            mProgressBar = (ProgressBar) this.findViewById(R.id.progressBar);
+            ProgressBar mProgressBar = (ProgressBar) this.findViewById(R.id.progressBar);
             mProgressBar.setVisibility(ProgressBar.INVISIBLE);
             mInstruction.setVisibility(View.VISIBLE);
         }
@@ -74,12 +77,12 @@ public class MainActivity extends AppCompatActivity
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        toolbar = (Toolbar) findViewById(R.id.list_row_name);
-        setSupportActionBar(toolbar);
+        Toolbar mToolbar = (Toolbar) findViewById(R.id.list_row_name);
+        setSupportActionBar(mToolbar);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                this, drawer, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
@@ -110,23 +113,60 @@ public class MainActivity extends AppCompatActivity
         if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
             buildAlertMessageNoGps();
         }
+        //restoring activity (restart)
+        if (savedInstanceState != null)
+        {
+            mLastLocation = savedInstanceState.getParcelable("LOCATION");
+            mListType = (Bihapi) savedInstanceState.getSerializable("LIST_TYPE");
+            //we need to launch a previous fragment
+            if (mListType != null) {
+                Fragment fragment = new ListFragment();
+                Bundle args = new Bundle();
 
+                TextView initText = (TextView) findViewById(R.id.init);
+                initText.setVisibility(View.GONE);
+
+                ProgressBar mProgressBar = (ProgressBar) this.findViewById(R.id.progressBar);
+                mProgressBar.setVisibility(ProgressBar.INVISIBLE);
+                mInstruction.setVisibility(View.INVISIBLE);
+
+                if (mLastLocation == null) {
+                    Toast.makeText(this, "Waiting for the location...", Toast.LENGTH_LONG).show();
+                } else {
+                    args.putSerializable("API_TYPE", mListType);
+                    fragment.setArguments(args);
+
+                    FragmentManager fragmentManager = getFragmentManager();
+                    fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
+                }
+
+
+            }
+        }
         for(Bihapi b: Bihapi.values()){
-            if(!fileExists(b))
-
-                new FetchAPI(this,this, b).execute();
-            else
+            if (fileExists(b)) {
                 mInstruction.setVisibility(View.VISIBLE);
                 refresh(Bihapi.THEATRES);
+            } else {
+                new FetchAPI(this, this, b, FetchAPI.FetchType.FILE_RESOURCES).execute();
+            }
         }
 
         Log.i(TAG, "SCIEZKA: " + getFilesDir().getAbsolutePath());
         mLocationRequest = createLocationRequest();
     }
 
-    /**
-     * In case of lack of GPS connecction method sends a prompt to turn it on.
-     */
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState)
+    {
+        savedInstanceState.putParcelable("LOCATION", mLastLocation);
+        if (mListType != null)
+            savedInstanceState.putSerializable("LIST_TYPE", mListType);
+    }
+
+        /**
+         * In case of lack of GPS conecction method sends a prompt to turn it on.
+         */
     private void buildAlertMessageNoGps() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Your GPS seems to be disabled, do you want to enable it?")
@@ -218,59 +258,67 @@ public class MainActivity extends AppCompatActivity
             return false;
         }
 
-        args.putDouble("LATITUDE", mLastLocation.getLatitude());
-        args.putDouble("LONGITUDE", mLastLocation.getLongitude());
 
         switch (id)
         {
             case R.id.nav_atms:
             {
                 args.putSerializable("API_TYPE", Bihapi.CASH_MACHINES);
+                mListType = Bihapi.CASH_MACHINES;
                 break;
             }
             case R.id.nav_bikes:
             {
                 args.putSerializable("API_TYPE", Bihapi.VETURILO);
+                mListType = Bihapi.VETURILO;
                 break;
             }
             case R.id.nav_city_offices:
             {
                 args.putSerializable("API_TYPE", Bihapi.CITY_OFFICES);
+                mListType = Bihapi.CITY_OFFICES;
                 break;
             }
             case R.id.nav_dormitories:
             {
                 args.putSerializable("API_TYPE", Bihapi.DORMITORIES);
+                mListType = Bihapi.DORMITORIES;
                 break;
             }
             case R.id.nav_hotels:
             {
                 args.putSerializable("API_TYPE", Bihapi.HOTELS);
+                mListType = Bihapi.HOTELS;
                 break;
             }
             case R.id.nav_pharmacies:
             {
                 args.putSerializable("API_TYPE", Bihapi.PHARMACIES);
+                mListType = Bihapi.PHARMACIES;
                 break;
             }
             case R.id.nav_sport_fields:
             {
                 args.putSerializable("API_TYPE", Bihapi.SPORT_FIELDS);
+                mListType = Bihapi.SPORT_FIELDS;
                 break;
             }
             case R.id.nav_swimming:
             {
                 args.putSerializable("API_TYPE", Bihapi.SWIMMING_POOLS);
+                mListType = Bihapi.SWIMMING_POOLS;
                 break;
             }
             case R.id.nav_police_offices:
             {
                 args.putSerializable("API_TYPE", Bihapi.POLICE_OFFICES);
+                mListType = Bihapi.POLICE_OFFICES;
                 break;
             }
             case R.id.nav_theaters:
             {
                 args.putSerializable("API_TYPE", Bihapi.THEATRES);
+                mListType = Bihapi.THEATRES;
                 break;
             }
         }
@@ -283,7 +331,6 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-
     /**
      * Method needed by interface for interaction with fragment
      * @param uri
