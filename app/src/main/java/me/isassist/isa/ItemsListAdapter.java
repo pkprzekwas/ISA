@@ -77,11 +77,13 @@ public class ItemsListAdapter extends BaseAdapter {
                 //address.setVisibility(TextView.INVISIBLE);
                 break;
             case HOTELS:
-                name.setText(Html.fromHtml(item.get("OPIS")));
+                if (item.get("OPIS") != null)
+                    name.setText(Html.fromHtml(item.get("OPIS")));
                 address.setText(item.get("ULICA") + " " + item.get("NUMER"));
                 break;
             default:
-                name.setText(Html.fromHtml(item.get("OPIS")));
+                if (item.get("OPIS") != null)
+                    name.setText(Html.fromHtml(item.get("OPIS")));
                 address.setText(item.get("ULICA") + " " + item.get("NUMER"));
         }
 

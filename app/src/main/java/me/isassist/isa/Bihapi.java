@@ -20,9 +20,9 @@ public enum Bihapi {
 
         switch(this) {
             case CITY_OFFICES:
-                return url + "cityOffices";
+                return url + "city_offices";
             case CASH_MACHINES:
-                return url + "cashMachines";
+                return url + "cash_machines";
             case DORMITORIES:
                 return url + "dormitories";
             case PHARMACIES:
@@ -30,15 +30,44 @@ public enum Bihapi {
             case HOTELS:
                 return url + "hotels";
             case POLICE_OFFICES:
-                return url + "policeOffices";
+                return url + "police_offices";
             case SPORT_FIELDS:
-                return url + "sportFields";
+                return url + "sport_fields";
             case SWIMMING_POOLS:
-                return url + "swimmingPools";
+                return url + "swimming_pools";
             case VETURILO:
                 return url + "veturilo";
             case THEATRES:
                 return url + "theatres";
+            default:
+                return null;
+        }
+    }
+
+    @Override
+    public String toString()
+    {
+        switch (this) {
+            case CITY_OFFICES:
+                return "City offices";
+            case CASH_MACHINES:
+                return "ATMs";
+            case DORMITORIES:
+                return "Dormitories";
+            case PHARMACIES:
+                return "Pharmacies";
+            case HOTELS:
+                return "Hotels";
+            case POLICE_OFFICES:
+                return "Police offices";
+            case SPORT_FIELDS:
+                return "Sport fields";
+            case SWIMMING_POOLS:
+                return "Swimming pools";
+            case VETURILO:
+                return "City bikes";
+            case THEATRES:
+                return "Theatres";
             default:
                 return null;
         }

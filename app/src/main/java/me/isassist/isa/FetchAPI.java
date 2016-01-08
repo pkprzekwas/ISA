@@ -9,6 +9,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -37,18 +38,25 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
     private ArrayList<Hashtable<String, String>> mResult;
     private ListFragment mFragment;
     private Bihapi mAPI;
+    private FetchType mFetchType;
     MainActivity mActivity;
+
+    public enum FetchType
+    {
+        INTERNET, FILE_RESOURCES
+    }
 
     /**
      *
      * @param c context
      */
-    public FetchAPI(Context c, MainActivity m, Bihapi API)
+    public FetchAPI(Context c, MainActivity m, Bihapi API, FetchType type)
     {
         //mFragment = fragment;
         mActivity = m;
         mContext = c;
         mAPI = API;
+        mFetchType = type;
     }
 
     /**
@@ -114,79 +122,136 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
 
         ArrayList<Hashtable<String, String>> returnList = null;
 
-        // These two need to be declared outside the try/catch
-        // so that they can be closed in the finally block.
-        HttpsURLConnection urlConnection = null;
-        BufferedReader reader = null;
-
         // Will contain the raw JSON response as a string.
         String JSONString = null;
 
-        Authenticator.setDefault(new Authenticator() {
-            public PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(Constants.API_LOGIN, Constants.API_PASSWORD.toCharArray());
+        if (mFetchType == FetchType.INTERNET) {
+            // These two need to be declared outside the try/catch
+            // so that they can be closed in the finally block.
+            HttpsURLConnection urlConnection = null;
+            BufferedReader reader = null;
+
+
+            Authenticator.setDefault(new Authenticator() {
+                public PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(Constants.API_LOGIN, Constants.API_PASSWORD.toCharArray());
+                }
+            });
+
+            Uri.Builder uriBuilder = Uri.parse(mAPI.getURL()).buildUpon();
+
+            Uri uri = uriBuilder.build();
+
+
+            try {
+                // Construct the URL for the OpenWeatherMap query
+                // Possible parameters are available at OWM's forecast API page, at
+                // http://openweathermap.org/API#forecast
+
+                URL url = new URL(uri.toString());
+
+                // Create the request to OpenWeatherMap, and open the connection
+                urlConnection = (HttpsURLConnection) url.openConnection();
+                urlConnection.setSSLSocketFactory(new CustomCACert(mContext, R.raw.ca_tp_der).getSSLSocketFactory());
+                urlConnection.setRequestMethod("GET");
+                urlConnection.connect();
+
+                // Read the input stream into a String
+                InputStream inputStream = urlConnection.getInputStream();
+                StringBuffer buffer = new StringBuffer();
+                if (inputStream == null) {
+                    // Nothing to do.
+                    return null;
+                }
+                reader = new BufferedReader(new InputStreamReader(inputStream));
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    buffer.append(line);
+                }
+
+                if (buffer.length() == 0) {
+                    // Stream was empty.  No point in parsing.
+                    return null;
+                }
+                JSONString = buffer.toString();
+            } catch (Exception e) {
+                Log.e(TAG, e.getMessage());
+                // If the code didn't successfully get the JSON data
+                // to parse it.
+                return null;
+            } finally {
+                if (urlConnection != null) {
+                    urlConnection.disconnect();
+                }
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (final IOException e) {
+                        Log.e(TAG, "Error closing stream", e);
+                    }
+                }
             }
-        });
-
-        Uri.Builder uriBuilder = Uri.parse(mAPI.getURL()).buildUpon();
-
-        Uri uri = uriBuilder.build();
-
-
-        try {
-            // Construct the URL for the OpenWeatherMap query
-            // Possible parameters are available at OWM's forecast API page, at
-            // http://openweathermap.org/API#forecast
-
-            URL url = new URL(uri.toString());
-
-            // Create the request to OpenWeatherMap, and open the connection
-            urlConnection = (HttpsURLConnection) url.openConnection();
-            urlConnection.setSSLSocketFactory(new CustomCACert(mContext, R.raw.ca_tp_der).getSSLSocketFactory());
-            urlConnection.setRequestMethod("GET");
-            urlConnection.connect();
-
-            // Read the input stream into a String
-            InputStream inputStream = urlConnection.getInputStream();
-            StringBuffer buffer = new StringBuffer();
-            if (inputStream == null) {
-                // Nothing to do.
+            try {
+                returnList = getDataFromJSON(JSONString);
+            } catch (Exception ex) {
+                Log.e(TAG, ex.getMessage());
                 return null;
             }
-            reader = new BufferedReader(new InputStreamReader(inputStream));
-
+        }
+        else if (mFetchType == FetchType.FILE_RESOURCES)
+        {
+            InputStream inputStream = null;
+            switch (mAPI) {
+                case CITY_OFFICES:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.city_offices));
+                    break;
+                case CASH_MACHINES:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.cash_machines));
+                    break;
+                case DORMITORIES:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.dormitories));
+                    break;
+                case PHARMACIES:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.pharmacies));
+                    break;
+                case HOTELS:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.hotels));
+                    break;
+                case POLICE_OFFICES:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.police_offices));
+                    break;
+                case SPORT_FIELDS:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.sport_fields));
+                    break;
+                case SWIMMING_POOLS:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.swimming_pools));
+                    break;
+                case VETURILO:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.veturilo));
+                    break;
+                case THEATRES:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.theatres));
+                    break;
+            }
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            StringBuffer buffer = new StringBuffer();
             String line;
-            while ((line = reader.readLine()) != null) {buffer.append(line);}
-
-            if (buffer.length() == 0) {
-                // Stream was empty.  No point in parsing.
+            try {
+                while ((line = reader.readLine()) != null) {
+                    buffer.append(line);
+                }
+            } catch (IOException e) {
+                Log.e(TAG, e.getMessage());
                 return null;
             }
             JSONString = buffer.toString();
-        } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
-            // If the code didn't successfully get the JSON data
-            // to parse it.
-            return null;
-        } finally{
-            if (urlConnection != null) {
-                urlConnection.disconnect();
+            try {
+                returnList = getDataFromJSON(JSONString);
+            } catch (Exception ex) {
+                Log.e(TAG, ex.getMessage());
+                return null;
             }
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (final IOException e) {
-                    Log.e(TAG, "Error closing stream", e);
-                }
-            }
-        }
-        try {
-            returnList = getDataFromJSON(JSONString);
-        }
-        catch (Exception ex)
-        {
-            Log.e(TAG, ex.getMessage());
-            return null;
         }
 
         Log.d(TAG, "Rozpoczynam zapisywanie do pliku " + mAPI.name());
