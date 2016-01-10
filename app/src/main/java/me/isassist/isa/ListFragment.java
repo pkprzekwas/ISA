@@ -73,10 +73,11 @@ public class ListFragment extends Fragment {
         savedInstanceState.putParcelable("LOCATION", mLocation);
         savedInstanceState.putSerializable("API", mAPI);
     }
-        /**
-         * Method called from DownloadFromFile class to refresh the results
-         * @param data API data sorted by distance from "current" location
-         */
+
+    /**
+     * Method called from DownloadFromFile class to refresh the results
+     * @param data API data sorted by distance from "current" location
+     */
     public void refresh(ArrayList<Hashtable<String, String>> data)
     {
         Log.i(TAG, "refresh()");
@@ -115,7 +116,6 @@ public class ListFragment extends Fragment {
 
         if (mLocation != null)
             new DownloadFromFile(getActivity(), this, mLocation, mAPI.name()).execute();
-        //TODO: sortowanie po odleglosci obiektow od mLocation
 
         // Inflate the layout for this fragment
         return v;
