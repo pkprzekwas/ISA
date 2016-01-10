@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -130,7 +131,6 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
             // so that they can be closed in the finally block.
             HttpsURLConnection urlConnection = null;
             BufferedReader reader = null;
-
 
             Authenticator.setDefault(new Authenticator() {
                 public PasswordAuthentication getPasswordAuthentication() {
@@ -271,13 +271,31 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
     }
 
     /**
+     * Simple method which compares to strings
+     * and checks if saved file was the last one.
+     * @param name string with api name
+     * @return true if last activity - false otherwise
+     */
+    private boolean checkIfLast(String name){
+        if(name.equals("THEATRES"))
+            return true;
+        else
+            return false;
+    }
+
+    /**
      * Calls a method in fragment, passes data fetched from API as argument
      * @param result
      */
     @Override
     protected void onPostExecute(ArrayList<Hashtable<String, String>> result) {
-        if (result != null) {
-                mActivity.refresh(mAPI);
+        boolean isLast = checkIfLast(mAPI.name());
+        if (result != null && isLast) {
+                mActivity.refresh(isLast);
+        }
+        else if (result == null && isLast){
+            mActivity.refresh(isLast);
+            Toast.makeText(mContext, "Server problem", Toast.LENGTH_SHORT).show();
         }
     }
 }
