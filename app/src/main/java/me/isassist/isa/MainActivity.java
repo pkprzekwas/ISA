@@ -1,6 +1,7 @@
 package me.isassist.isa;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.FragmentManager;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -22,6 +23,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,6 +48,7 @@ public class MainActivity extends AppCompatActivity
     public Location mLastLocation;
     private ImageView mInstruction;
     protected LocationRequest mLocationRequest;
+
     /**
      * When this variable is not null it means a fragment with a certain list is open
      * This variable is used to restore this fragment after restart of activity
@@ -53,23 +56,21 @@ public class MainActivity extends AppCompatActivity
      */
     private Bihapi mListType = null;
 
-
     /**
-     * For now it only shows progress bar
-     * @param mAPI
+     *
+     * @param isLastRefresh
      */
-    public void refresh(Bihapi mAPI)
+    public void refresh(boolean isLastRefresh)
     {
         TextView initText = (TextView) findViewById(R.id.init);
-        initText.setText("Running aplication for the first time may take a while.\n" +
-                "Please stay patient.");
-        if(mAPI.name() == "THEATRES") {
+        initText.setText("Initialization");
+        //if(isLastRefresh) {
             Log.i(TAG, "refresh()");
             initText.setVisibility(View.GONE);
             ProgressBar mProgressBar = (ProgressBar) this.findViewById(R.id.progressBar);
             mProgressBar.setVisibility(ProgressBar.INVISIBLE);
             mInstruction.setVisibility(View.VISIBLE);
-        }
+        //}
     }
 
     @Override
@@ -137,7 +138,7 @@ public class MainActivity extends AppCompatActivity
                     fragment.setArguments(args);
 
                     FragmentManager fragmentManager = getFragmentManager();
-                    fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
+                    fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment, "MAIN_FRAGMENT").commit();
                 }
 
 
@@ -146,7 +147,7 @@ public class MainActivity extends AppCompatActivity
         for(Bihapi b: Bihapi.values()){
             if (fileExists(b)) {
                 mInstruction.setVisibility(View.VISIBLE);
-                refresh(Bihapi.THEATRES);
+                refresh(true);
             } else {
                 new FetchAPI(this, this, b, FetchAPI.FetchType.FILE_RESOURCES).execute();
             }
@@ -235,13 +236,37 @@ public class MainActivity extends AppCompatActivity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_refresh) {
+            /*mInstruction.setVisibility(View.INVISIBLE);
+            ProgressBar mProgressBar = (ProgressBar) this.findViewById(R.id.progressBar);
+            mProgressBar.setVisibility(ProgressBar.VISIBLE);
+            DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+            if (drawer.isDrawerOpen(GravityCompat.START)) {
+                drawer.closeDrawer(GravityCompat.START);
+            }
+
+            for(Bihapi b: Bihapi.values())
+                new FetchAPI(this, this, b, FetchAPI.FetchType.INTERNET).execute();
+            */
+            return true;
+        }
+        else if (id == R.id.action_about){
+            final Dialog dialog = new Dialog(this);
+            dialog.setContentView(R.layout.custom);
+            dialog.setTitle("Info");
+
+            // set the custom dialog components - text, image and button
+            TextView text = (TextView) dialog.findViewById(R.id.text);
+            text.setText(R.string.resources);
+
+            dialog.show();
             return true;
         }
 
+
         return super.onOptionsItemSelected(item);
     }
+
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
@@ -325,7 +350,7 @@ public class MainActivity extends AppCompatActivity
         fragment.setArguments(args);
 
         FragmentManager fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
+        fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment, "MAIN_FRAGMENT").commit();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -371,7 +396,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     /**
-     * Handles getting last locations
+     * Handless getting last locations
      * @param i
      */
     @Override
