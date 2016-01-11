@@ -3,13 +3,13 @@ package me.isassist.isa;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.support.design.widget.NavigationView;
@@ -18,13 +18,12 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
+import android.view.MotionEvent;
 import android.widget.ImageView;
-
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,15 +37,14 @@ import java.io.File;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-        ListFragment.OnFragmentInteractionListener,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener
 {
     private final String TAG = this.getClass().getSimpleName();
+
     GoogleApiClient mGoogleApiClient;
     public Location mLastLocation;
-    private ImageView mInstruction;
     protected LocationRequest mLocationRequest;
 
     /**
@@ -56,21 +54,24 @@ public class MainActivity extends AppCompatActivity
      */
     private Bihapi mListType = null;
 
-    /**
-     *
-     * @param isLastRefresh
-     */
-    public void refresh(boolean isLastRefresh)
+    public void showMainFragment()
     {
-        TextView initText = (TextView) findViewById(R.id.init);
-        initText.setText("Initialization");
-        //if(isLastRefresh) {
-            Log.i(TAG, "refresh()");
-            initText.setVisibility(View.GONE);
-            ProgressBar mProgressBar = (ProgressBar) this.findViewById(R.id.progressBar);
-            mProgressBar.setVisibility(ProgressBar.INVISIBLE);
-            mInstruction.setVisibility(View.VISIBLE);
-        //}
+        //show the main fragment with instruction picture
+        Fragment mainFragment = new MainFragment();
+        FragmentManager fragmentManager = getFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.fragment_container, mainFragment).commit();
+    }
+
+    public void showLoadingFragment(String text)
+    {
+        //show the main fragment with instruction picture
+        Bundle args = new Bundle();
+        args.putString("LOADING_TEXT", text);
+        Fragment loadingFragment = new LoadingFragment();
+        loadingFragment.setArguments(args);
+        FragmentManager fragmentManager = getFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.fragment_container, loadingFragment).commit();
+
     }
 
     @Override
@@ -90,15 +91,6 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        mInstruction = (ImageView)findViewById(R.id.instruction);
-
-        // checking internet access
-        if(isNetworkAvailable())
-            Toast.makeText(this, "Internet access", Toast.LENGTH_SHORT).show();
-        else
-            Toast.makeText(this, "No Internet access", Toast.LENGTH_SHORT).show();
-
-
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
                     .addConnectionCallbacks(this)
@@ -114,22 +106,18 @@ public class MainActivity extends AppCompatActivity
         if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
             buildAlertMessageNoGps();
         }
+        mLocationRequest = createLocationRequest();
+
         //restoring activity (restart)
         if (savedInstanceState != null)
         {
             mLastLocation = savedInstanceState.getParcelable("LOCATION");
             mListType = (Bihapi) savedInstanceState.getSerializable("LIST_TYPE");
+
             //we need to launch a previous fragment
             if (mListType != null) {
                 Fragment fragment = new ListFragment();
                 Bundle args = new Bundle();
-
-                TextView initText = (TextView) findViewById(R.id.init);
-                initText.setVisibility(View.GONE);
-
-                ProgressBar mProgressBar = (ProgressBar) this.findViewById(R.id.progressBar);
-                mProgressBar.setVisibility(ProgressBar.INVISIBLE);
-                mInstruction.setVisibility(View.INVISIBLE);
 
                 if (mLastLocation == null) {
                     Toast.makeText(this, "Waiting for the location...", Toast.LENGTH_LONG).show();
@@ -138,24 +126,34 @@ public class MainActivity extends AppCompatActivity
                     fragment.setArguments(args);
 
                     FragmentManager fragmentManager = getFragmentManager();
-                    fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment, "MAIN_FRAGMENT").commit();
+                    fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
                 }
-
-
             }
         }
-        for(Bihapi b: Bihapi.values()){
-            if (fileExists(b)) {
-                mInstruction.setVisibility(View.VISIBLE);
-                refresh(true);
+        else {
+
+            boolean allFilesExist = true;
+            for (Bihapi b : Bihapi.values()) {
+                if (fileExists(b)) {
+                } else {
+                    allFilesExist = false;
+                }
+            }
+
+            if (allFilesExist) {
+                showMainFragment();
             } else {
-                new FetchAPI(this, this, b, FetchAPI.FetchType.FILE_RESOURCES).execute();
+                showLoadingFragment("Loading data\n Please wait!");
+                for (Bihapi b : Bihapi.values()) {
+                    if (!fileExists(b)) {
+                        new FetchAPI(this, this, b, FetchAPI.FetchType.FILE_RESOURCES).execute();
+                    }
+                }
             }
         }
-
         Log.i(TAG, "SCIEZKA: " + getFilesDir().getAbsolutePath());
-        mLocationRequest = createLocationRequest();
     }
+
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState)
@@ -163,6 +161,7 @@ public class MainActivity extends AppCompatActivity
         savedInstanceState.putParcelable("LOCATION", mLastLocation);
         if (mListType != null)
             savedInstanceState.putSerializable("LIST_TYPE", mListType);
+        super.onSaveInstanceState(savedInstanceState);
     }
 
         /**
@@ -218,7 +217,11 @@ public class MainActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            if (getFragmentManager().getBackStackEntryCount() > 0 ){
+                getFragmentManager().popBackStack();
+            } else {
+                super.onBackPressed();
+            }
         }
     }
 
@@ -237,9 +240,12 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.action_refresh) {
-            /*mInstruction.setVisibility(View.INVISIBLE);
-            ProgressBar mProgressBar = (ProgressBar) this.findViewById(R.id.progressBar);
-            mProgressBar.setVisibility(ProgressBar.VISIBLE);
+            if (!isNetworkAvailable())
+            {
+                Toast.makeText(this, "No internet connection available!", Toast.LENGTH_LONG).show();
+                return true;
+            }
+            showLoadingFragment("Updating\nThis can take a while\n Please wait!");
             DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
             if (drawer.isDrawerOpen(GravityCompat.START)) {
                 drawer.closeDrawer(GravityCompat.START);
@@ -247,23 +253,19 @@ public class MainActivity extends AppCompatActivity
 
             for(Bihapi b: Bihapi.values())
                 new FetchAPI(this, this, b, FetchAPI.FetchType.INTERNET).execute();
-            */
             return true;
         }
         else if (id == R.id.action_about){
             final Dialog dialog = new Dialog(this);
-            dialog.setContentView(R.layout.custom);
-            dialog.setTitle("Info");
+            dialog.setContentView(R.layout.about_dialog);
+            dialog.setTitle("About");
 
-            // set the custom dialog components - text, image and button
-            TextView text = (TextView) dialog.findViewById(R.id.text);
-            text.setText(R.string.resources);
+            TextView text = (TextView) dialog.findViewById(R.id.licensesText);
+            text.setText(Html.fromHtml("Building, Tall, Trading, Human graphics by <a href=\"http://www.freepik.com/\">Freepik</a> and Building graphic by <a href=\"http://www.unocha.org\">Ocha</a> and Haw Gestures Stroke graphic by <a href=\"http://yanlu.de\">Yannick</a> from <a href=\"http://www.flaticon.com/\">Flaticon</a> are licensed under <a href=\"http://creativecommons.org/licenses/by/3.0/\" title=\"Creative Commons BY 3.0\">CC BY 3.0</a>.Park graphic by <a href=\"http://www.freepik.com\">Freepik</a> from <a href=\"http://www.flaticon.com/\">Flaticon</a> is licensed under <a href=\"http://creativecommons.org/licenses/by/3.0/\" title=\"Creative Commons BY 3.0\">CC BY 3.0</a>. Made with <a href=\"http://logomakr.com\" title=\"Logo Maker\">Logo Maker</a>"));
 
             dialog.show();
             return true;
         }
-
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -349,20 +351,14 @@ public class MainActivity extends AppCompatActivity
         }
         fragment.setArguments(args);
 
-        FragmentManager fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment, "MAIN_FRAGMENT").commit();
+        FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+        fragmentTransaction.replace(R.id.fragment_container, fragment);
+        fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
-    }
-    /**
-     * Method needed by interface for interaction with fragment
-     * @param uri
-     */
-    @Override
-    public void onFragmentInteraction(Uri uri) {
-
     }
 
     /**
@@ -389,9 +385,9 @@ public class MainActivity extends AppCompatActivity
             String loc = new String();
             loc += "lat:  " + mLastLocation.getLatitude();
             loc += ", lon: " + mLastLocation.getLongitude();
-            Toast.makeText(this, loc, Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, loc, Toast.LENGTH_SHORT).show();
         } else {
-            Toast.makeText(this, "No location detected!!!", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "No location detected!!!", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -419,10 +415,11 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onLocationChanged(Location location) {
         mLastLocation = location;
-        Toast.makeText(this, "Location updated!", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Location updated!", Toast.LENGTH_SHORT).show();
         LocationServices.FusedLocationApi.removeLocationUpdates(
                 mGoogleApiClient, this);
     }
+
     protected LocationRequest createLocationRequest() {
         LocationRequest locationRequest = new LocationRequest();
         locationRequest.setInterval(200);

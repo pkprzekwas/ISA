@@ -290,12 +290,17 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
     @Override
     protected void onPostExecute(ArrayList<Hashtable<String, String>> result) {
         boolean isLast = checkIfLast(mAPI.name());
-        if (result != null && isLast) {
-                mActivity.refresh(isLast);
+        if (isLast)
+        {
+            mActivity.showMainFragment();
         }
-        else if (result == null && isLast){
-            mActivity.refresh(isLast);
-            Toast.makeText(mContext, "Server problem", Toast.LENGTH_SHORT).show();
+        if (result == null)
+        {
+            Toast.makeText(mContext, "Update of " + mAPI.toString() + " failed!", Toast.LENGTH_SHORT).show();
+        }
+        else
+        {
+            Toast.makeText(mContext, mAPI.toString() + " updated!", Toast.LENGTH_SHORT).show();
         }
     }
 }
