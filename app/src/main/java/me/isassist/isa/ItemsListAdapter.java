@@ -3,10 +3,12 @@ package me.isassist.isa;
 import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -22,12 +24,14 @@ public class ItemsListAdapter extends BaseAdapter {
     private ArrayList<Hashtable<String, String>> mData;
     private static LayoutInflater mInflater =null;
     private Location mLocation;
+    private Bihapi mAPIType;
 
-    public ItemsListAdapter(Activity activity, Location loc, ArrayList<Hashtable<String, String>> data) {
+    public ItemsListAdapter(Activity activity, Location loc, ArrayList<Hashtable<String, String>> data, Bihapi api) {
         mActivity = activity;
         mData = data;
         mInflater = (LayoutInflater) mActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         mLocation = loc;
+        mAPIType = api;
     }
 
 
@@ -49,6 +53,7 @@ public class ItemsListAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         View vi = convertView;
+
         if(convertView == null)
             vi = mInflater.inflate(R.layout.list_row, null);
 
@@ -58,9 +63,29 @@ public class ItemsListAdapter extends BaseAdapter {
 
         Hashtable<String, String> item = mData.get(position);
 
-        // Setting all values in listview
-        name.setText(item.get("OPIS"));
-        address.setText(item.get("ULICA") + " " + item.get("NUMER"));
+        switch (mAPIType)
+        {
+            case CASH_MACHINES:
+                if (item.get("WWW_BANKU").equals("http://www.euronetpolska.pl"))
+                    name.setText("Euronet");
+
+                address.setText(item.get("ULICA") + " " + item.get("NUMER"));
+                break;
+            case VETURILO:
+                name.setText(item.get("LOKALIZACJA"));
+                address.setText("Station ID: " + item.get("NR_STACJI"));
+                //address.setVisibility(TextView.INVISIBLE);
+                break;
+            case HOTELS:
+                if (item.get("OPIS") != null)
+                    name.setText(Html.fromHtml(item.get("OPIS")));
+                address.setText(item.get("ULICA") + " " + item.get("NUMER"));
+                break;
+            default:
+                if (item.get("OPIS") != null)
+                    name.setText(Html.fromHtml(item.get("OPIS")));
+                address.setText(item.get("ULICA") + " " + item.get("NUMER"));
+        }
 
         Location loc = new Location("");
         loc.setLatitude(Double.parseDouble(item.get("lat")));

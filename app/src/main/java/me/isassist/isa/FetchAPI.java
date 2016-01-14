@@ -58,6 +58,60 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
         mContext = c;
         mAPI = API;
         mFetchType = type;
+<<<<<<< HEAD
+=======
+    }
+
+    /**
+     * Method parses JSON String from API into ArrayList of Hashtables containing key-value
+     * characteristics of items
+     *
+     * @param jsonStr String with JSON raw data
+     * @return ArrayList of Hashtables with parsed data
+     * @throws JSONException
+     */
+    private ArrayList<Hashtable<String, String>> getDataFromJSON(String jsonStr)
+            throws JSONException {
+
+        // These are the names of the JSON objects that need to be extracted.
+        final String API_DATA = "data";
+        final String API_GEOMETRY = "geometry";
+        final String API_COORDINATES = "coordinates";
+        final String API_LAT = "lat";
+        final String API_LON = "lon";
+        final String API_PROPERTIES = "properties";
+        final String API_KEY = "key";
+        final String API_VALUE = "value";
+
+        JSONObject jsonObject = new JSONObject(jsonStr);
+        JSONArray itemsArray = jsonObject.getJSONArray(API_DATA);
+        ArrayList<Hashtable<String, String>> itemsList = new ArrayList<Hashtable<String, String>>();
+
+        for(int i = 0; i < itemsArray.length(); i++)
+        {
+            // Get the JSON object representing the single item
+            JSONObject itemObject = itemsArray.getJSONObject(i);
+            Hashtable<String, String> itemHashtable = new Hashtable<>();
+
+            // Get the JSON data containing geometry and coordinates
+            JSONObject geometryObject = itemObject.getJSONObject(API_GEOMETRY);
+            JSONObject coordinatesObject = geometryObject.getJSONObject(API_COORDINATES);
+
+            itemHashtable.put(API_LAT, coordinatesObject.getString(API_LAT));
+            itemHashtable.put(API_LON, coordinatesObject.getString(API_LON));
+
+            JSONArray itemPropertiesArray = itemObject.getJSONArray(API_PROPERTIES);
+
+            // Get the key-value pairs of characteristics of a given item
+            for (int j = 0; j < itemPropertiesArray.length(); j++)
+            {
+                JSONObject propertyObject = itemPropertiesArray.getJSONObject(j);
+                itemHashtable.put(propertyObject.getString(API_KEY), propertyObject.getString(API_VALUE));
+            }
+            itemsList.add(itemHashtable);
+        }
+        return itemsList;
+>>>>>>> origin/pmdev
     }
 
     /**
@@ -142,6 +196,7 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
                 }
             }
             try {
+<<<<<<< HEAD
                 returnList = JSONParser.getDataFromJSON(JSONString);
             } catch (Exception ex) {
                 Log.e(TAG, ex.getMessage());
@@ -183,6 +238,49 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
                     inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.theatres));
                     break;
             }
+=======
+                returnList = getDataFromJSON(JSONString);
+            } catch (Exception ex) {
+                Log.e(TAG, ex.getMessage());
+                return null;
+            }
+        }
+        else if (mFetchType == FetchType.FILE_RESOURCES)
+        {
+            InputStream inputStream = null;
+            switch (mAPI) {
+                case CITY_OFFICES:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.city_offices));
+                    break;
+                case CASH_MACHINES:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.cash_machines));
+                    break;
+                case DORMITORIES:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.dormitories));
+                    break;
+                case PHARMACIES:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.pharmacies));
+                    break;
+                case HOTELS:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.hotels));
+                    break;
+                case POLICE_OFFICES:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.police_offices));
+                    break;
+                case SPORT_FIELDS:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.sport_fields));
+                    break;
+                case SWIMMING_POOLS:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.swimming_pools));
+                    break;
+                case VETURILO:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.veturilo));
+                    break;
+                case THEATRES:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.theatres));
+                    break;
+            }
+>>>>>>> origin/pmdev
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
             StringBuffer buffer = new StringBuffer();
             String line;
@@ -196,7 +294,11 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
             }
             JSONString = buffer.toString();
             try {
+<<<<<<< HEAD
                 returnList = JSONParser.getDataFromJSON(JSONString);
+=======
+                returnList = getDataFromJSON(JSONString);
+>>>>>>> origin/pmdev
             } catch (Exception ex) {
                 Log.e(TAG, ex.getMessage());
                 return null;
