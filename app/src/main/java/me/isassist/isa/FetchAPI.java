@@ -4,15 +4,19 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.URL;
@@ -32,53 +36,28 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
 {
     private final String TAG = this.getClass().getSimpleName();
     private Context mContext;
-    private double mX, mY;
-    private int mDiameter;
-    private int mMaxFeatures;
-    private int mAPITypeResourceID;
     private ArrayList<Hashtable<String, String>> mResult;
     private ListFragment mFragment;
+    private Bihapi mAPI;
+    private FetchType mFetchType;
+    MainActivity mActivity;
 
-    /**
-     *
-     * @param c context
-     * @param APITypeResourceID contains String resource with part of the URL containing chosen API
-     * @param x first geographic coordinate
-     * @param y second geographic coordinate
-     * @param diameter the diameter of the circle of search
-     * @param result ArrayList of Hashtable which will contain findings of the search in key - value pairs
-     */
-    public FetchAPI(Context c, int APITypeResourceID, double x, double y, int diameter, ArrayList<Hashtable<String, String>> result, ListFragment fragment)
+    public enum FetchType
     {
-        mContext = c;
-        mX = x;
-        mY = y;
-        mDiameter = diameter;
-        mMaxFeatures = 0;
-        mAPITypeResourceID = APITypeResourceID;
-        mResult = result;
-        mFragment = fragment;
+        INTERNET, FILE_RESOURCES
     }
 
     /**
      *
      * @param c context
-     * @param APITypeResourceID contains String resource with part of the URL containing chosen API
-     * @param x first geographic coordinate
-     * @param y second geographic coordinate
-     * @param diameter the diameter of the circle of search
-     * @param maxFeatures max number of returned findings
-     * @param result ArrayList of Hashtable which will contain findings of the search in key - value pairs
      */
-    public FetchAPI(Context c, int APITypeResourceID, double x, double y, int diameter, int maxFeatures, ArrayList<Hashtable<String, String>> result)
+    public FetchAPI(Context c, MainActivity m, Bihapi API, FetchType type)
     {
+        //mFragment = fragment;
+        mActivity = m;
         mContext = c;
-        mX = x;
-        mY = y;
-        mDiameter = diameter;
-        mMaxFeatures = maxFeatures;
-        mAPITypeResourceID = APITypeResourceID;
-        mResult = result;
+        mAPI = API;
+        mFetchType = type;
     }
 
     /**
@@ -140,88 +119,168 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
     @Override
     protected ArrayList<Hashtable<String, String>> doInBackground(String... params)
     {
-        ArrayList<Hashtable<String, String>> returnList = null;
+        Log.d(TAG, "Rozpoczynam pobieranie API " + mAPI.name());
 
-        // These two need to be declared outside the try/catch
-        // so that they can be closed in the finally block.
-        HttpsURLConnection urlConnection = null;
-        BufferedReader reader = null;
+        ArrayList<Hashtable<String, String>> returnList = null;
 
         // Will contain the raw JSON response as a string.
         String JSONString = null;
 
-        Authenticator.setDefault(new Authenticator() {
-            public PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(Constants.API_LOGIN, Constants.API_PASSWORD.toCharArray());
+        if (mFetchType == FetchType.INTERNET) {
+            // These two need to be declared outside the try/catch
+            // so that they can be closed in the finally block.
+            HttpsURLConnection urlConnection = null;
+            BufferedReader reader = null;
+
+            Authenticator.setDefault(new Authenticator() {
+                public PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(Constants.API_LOGIN, Constants.API_PASSWORD.toCharArray());
+                }
+            });
+
+            Uri.Builder uriBuilder = Uri.parse(mAPI.getURL()).buildUpon();
+
+            Uri uri = uriBuilder.build();
+
+
+            try {
+                // Construct the URL for the OpenWeatherMap query
+                // Possible parameters are available at OWM's forecast API page, at
+                // http://openweathermap.org/API#forecast
+
+                URL url = new URL(uri.toString());
+
+                // Create the request to OpenWeatherMap, and open the connection
+                urlConnection = (HttpsURLConnection) url.openConnection();
+                urlConnection.setSSLSocketFactory(new CustomCACert(mContext, R.raw.ca_tp_der).getSSLSocketFactory());
+                urlConnection.setRequestMethod("GET");
+                urlConnection.connect();
+
+                // Read the input stream into a String
+                InputStream inputStream = urlConnection.getInputStream();
+                StringBuffer buffer = new StringBuffer();
+                if (inputStream == null) {
+                    // Nothing to do.
+                    return null;
+                }
+                reader = new BufferedReader(new InputStreamReader(inputStream));
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    buffer.append(line);
+                }
+
+                if (buffer.length() == 0) {
+                    // Stream was empty.  No point in parsing.
+                    return null;
+                }
+                JSONString = buffer.toString();
+            } catch (Exception e) {
+                Log.e(TAG, e.getMessage());
+                // If the code didn't successfully get the JSON data
+                // to parse it.
+                return null;
+            } finally {
+                if (urlConnection != null) {
+                    urlConnection.disconnect();
+                }
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (final IOException e) {
+                        Log.e(TAG, "Error closing stream", e);
+                    }
+                }
             }
-        });
-
-        Uri.Builder uriBuilder = Uri.parse(mContext.getString(R.string.api_base_url)+mContext.getString(mAPITypeResourceID))
-                .buildUpon()
-                .appendQueryParameter("circle", mX + "," + mY + "," + mDiameter);
-
-        if (mMaxFeatures > 0)
-            uriBuilder.appendQueryParameter("maxFeatures", Integer.toString(mMaxFeatures));
-
-        Uri uri = uriBuilder.build();
-
-
-        try {
-            // Construct the URL for the OpenWeatherMap query
-            // Possible parameters are available at OWM's forecast API page, at
-            // http://openweathermap.org/API#forecast
-
-            URL url = new URL(uri.toString());
-
-            // Create the request to OpenWeatherMap, and open the connection
-            urlConnection = (HttpsURLConnection) url.openConnection();
-            urlConnection.setSSLSocketFactory(new CustomCACert(mContext, R.raw.ca_tp_der).getSSLSocketFactory());
-            urlConnection.setRequestMethod("GET");
-            urlConnection.connect();
-
-            // Read the input stream into a String
-            InputStream inputStream = urlConnection.getInputStream();
-            StringBuffer buffer = new StringBuffer();
-            if (inputStream == null) {
-                // Nothing to do.
+            try {
+                returnList = getDataFromJSON(JSONString);
+            } catch (Exception ex) {
+                Log.e(TAG, ex.getMessage());
                 return null;
             }
-            reader = new BufferedReader(new InputStreamReader(inputStream));
-
+        }
+        else if (mFetchType == FetchType.FILE_RESOURCES)
+        {
+            InputStream inputStream = null;
+            switch (mAPI) {
+                case CITY_OFFICES:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.city_offices));
+                    break;
+                case CASH_MACHINES:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.cash_machines));
+                    break;
+                case DORMITORIES:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.dormitories));
+                    break;
+                case PHARMACIES:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.pharmacies));
+                    break;
+                case HOTELS:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.hotels));
+                    break;
+                case POLICE_OFFICES:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.police_offices));
+                    break;
+                case SPORT_FIELDS:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.sport_fields));
+                    break;
+                case SWIMMING_POOLS:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.swimming_pools));
+                    break;
+                case VETURILO:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.veturilo));
+                    break;
+                case THEATRES:
+                    inputStream = new BufferedInputStream(mContext.getResources().openRawResource(R.raw.theatres));
+                    break;
+            }
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            StringBuffer buffer = new StringBuffer();
             String line;
-            while ((line = reader.readLine()) != null) {buffer.append(line);}
-
-            if (buffer.length() == 0) {
-                // Stream was empty.  No point in parsing.
+            try {
+                while ((line = reader.readLine()) != null) {
+                    buffer.append(line);
+                }
+            } catch (IOException e) {
+                Log.e(TAG, e.getMessage());
                 return null;
             }
             JSONString = buffer.toString();
-        } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
-            // If the code didn't successfully get the JSON data
-            // to parse it.
-            return null;
-        } finally{
-            if (urlConnection != null) {
-                urlConnection.disconnect();
-            }
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (final IOException e) {
-                    Log.e(TAG, "Error closing stream", e);
-                }
+            try {
+                returnList = getDataFromJSON(JSONString);
+            } catch (Exception ex) {
+                Log.e(TAG, ex.getMessage());
+                return null;
             }
         }
+
+        Log.d(TAG, "Rozpoczynam zapisywanie do pliku " + mAPI.name());
+
         try {
-            returnList = getDataFromJSON(JSONString);
+            FileOutputStream fileOutputStream = mContext.openFileOutput(mAPI.name(), Context.MODE_PRIVATE);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(returnList);
+            objectOutputStream.close();
+            fileOutputStream.close();
+        } catch (IOException e) {
+            Log.e(TAG, e.getMessage());
         }
-        catch (Exception ex)
-        {
-            Log.e(TAG, ex.getMessage());
-        }
+        Log.d(TAG, "Zapisano " + mAPI.name());
         mResult = returnList;
         return returnList;
+    }
+
+    /**
+     * Simple method which compares to strings
+     * and checks if saved file was the last one.
+     * @param name string with api name
+     * @return true if last activity - false otherwise
+     */
+    private boolean checkIfLast(String name){
+        if(name.equals("THEATRES"))
+            return true;
+        else
+            return false;
     }
 
     /**
@@ -230,10 +289,16 @@ class FetchAPI extends AsyncTask<String, Void, ArrayList<Hashtable<String, Strin
      */
     @Override
     protected void onPostExecute(ArrayList<Hashtable<String, String>> result) {
-        if (result != null)
+        boolean isLast = checkIfLast(mAPI.name());
+        if (isLast && result != null)
         {
-            // call a method in fragment, which will display results of the fetching on screen
-            mFragment.refresh(result);
+            mActivity.showMainFragment();
+            Toast.makeText(mContext, "Update successful", Toast.LENGTH_LONG).show();
+        }
+        else if (isLast && result == null)
+        {
+            mActivity.showMainFragment();
+            Toast.makeText(mContext, "Update failed!\nPlease try again later.", Toast.LENGTH_LONG).show();
         }
     }
 }
