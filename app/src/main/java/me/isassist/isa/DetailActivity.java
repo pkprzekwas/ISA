@@ -1,32 +1,32 @@
 package me.isassist.isa;
 
-import android.app.ActionBar;
 import android.content.Intent;
-import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.ShareActionProvider;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.TypedValue;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
 import java.util.HashMap;
-import java.util.Hashtable;
 
 public class DetailActivity extends AppCompatActivity {
 
     private HashMap<String, String> mData;
     private Bihapi mAPIType;
+    private ShareActionProvider mShareActionProvider;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -143,6 +143,55 @@ public class DetailActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate menu resource file.
+        getMenuInflater().inflate(R.menu.activity_detail, menu);
+
+        // Locate MenuItem with ShareActionProvider
+        MenuItem item = menu.findItem(R.id.menu_item_share);
+
+        // Fetch and store ShareActionProvider
+        mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
+        setShareIntent(mAPIType);
+        // Return true to display menu
+        return true;
+    }
+
+    // Call to update the share intent
+    private void setShareIntent(Bihapi api) {
+        String text = "";
+        switch (api) {
+            case CITY_OFFICES:
+            case DORMITORIES:
+            case PHARMACIES:
+            case HOTELS:
+            case POLICE_OFFICES:
+            case SWIMMING_POOLS:
+            case THEATRES:
+                text = mData.get("OPIS") + " " + mData.get("ULICA") + " " + mData.get("NUMER");
+                break;
+            case CASH_MACHINES:
+                text = "Euronet " + mData.get("ULICA") + " " + mData.get("NUMER");
+                break;
+            case SPORT_FIELDS:
+                text = mData.get("OPIS") + " " + mData.get("ULICA");
+                break;
+            case VETURILO:
+                text = mData.get("LOKALIZACJA");
+                break;
+        }
+        String lat = mData.get("lat");
+        String lon = mData.get("lon");
+        text += " http://maps.google.com/maps?daddr="+lat+","+lon;
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, text);
+        if (mShareActionProvider != null) {
+            mShareActionProvider.setShareIntent(shareIntent);
+        }
     }
 
     private void addRow(TableLayout layout, String name, String value, ValueType type)
