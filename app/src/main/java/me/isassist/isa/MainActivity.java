@@ -60,6 +60,13 @@ public class MainActivity extends AppCompatActivity
         Fragment mainFragment = new MainFragment();
         FragmentManager fragmentManager = getFragmentManager();
         fragmentManager.beginTransaction().replace(R.id.fragment_container, mainFragment).commit();
+
+        // nie ruszać - nie wiem czemu ale sprawia problemy
+        final LocationManager manager = (LocationManager) getSystemService( this.LOCATION_SERVICE );
+        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+            buildAlertMessageNoGps();
+        }
+
     }
 
     public void showLoadingFragment(String text)
@@ -99,13 +106,6 @@ public class MainActivity extends AppCompatActivity
                     .build();
         }
 
-        // nie ruszać - nie wiem czemu ale sprawia problemy
-        final LocationManager manager = (LocationManager) getSystemService( this.LOCATION_SERVICE );
-
-        // checking internet connection
-        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
-            buildAlertMessageNoGps();
-        }
         mLocationRequest = createLocationRequest();
 
         //restoring activity (restart)
