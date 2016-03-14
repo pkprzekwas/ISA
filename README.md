@@ -1,6 +1,7 @@
 # ISA
 
 International Student Assistant is a project made for Bussiness Intelligence Hackathon API competition (www.bihapi.pl).
+Application is targeted to people visiting Warsaw and helps them to find interesting objects in the city.
 
 The main purpose of the app is displaying theatres, swimming pools, hotels, ATMs, etc. that are closest to user's current location.
 It also helps with navigation to a chosen object.
